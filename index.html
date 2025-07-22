@@ -146,24 +146,7 @@
             width: 100%;
         }
         /* Estilos para el pentagrama simplificado */
-        .staff-line {
-            stroke: #e2e8f0;
-            stroke-width: 1.5;
-        }
-        .treble-clef {
-            fill: #e2e8f0;
-        }
-        /* ¡Aquí el cambio! Color de texto de nota en el pentagrama, ahora más visible */
-        .staff-note-text {
-            fill: #f6ad55; /* Naranja para las notas en el pentagrama */
-            font-size: 12px; /* Tamaño más pequeño para cabezas de nota */
-            font-weight: bold;
-        }
-        .staff-chord-text {
-            fill: #f6ad55;
-            font-size: 16px;
-            font-weight: bold;
-        }
+        /* REMOVED: .staff-line, .treble-clef, .staff-note-text, .staff-chord-text */
         .loading-spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-top: 4px solid #f6ad55;
@@ -1170,7 +1153,7 @@
         // Standard guitar tuning (EADGBe) - Chromatic index for open strings
         // Low E (6th string) to High E (1st string)
         const openStringNotes = [
-            { name: "e", octave: 4, index: getChromaticIndex("E") }, // 1st string (high E)
+            { name: "E", octave: 4, index: getChromaticIndex("E") }, // 1st string (high E)
             { name: "B", octave: 3, index: getChromaticIndex("B") }, // 2nd string
             { name: "G", octave: 3, index: getChromaticIndex("G") }, // 3rd string
             { name: "D", octave: 3, index: getChromaticIndex("D") }, // 4th string
@@ -1290,60 +1273,68 @@
 
         // Function to generate tablature string
         function generateTablatureString(melodyNotes) {
-            const tabLines = Array(NUM_STRINGS).fill('');
-            // Initialize tab lines with string names (e| B| G| D| A| E|)
-            openStringNotes.forEach((string, idx) => {
-                tabLines[idx] = string.name + '|';
-            });
+            const tabLines = Array(NUM_STRINGS).fill('').map((_, i) => openStringNotes[i].name.charAt(0).toUpperCase() + '|');
+            const noteSlotWidth = 4; // Width of a slot for a note (e.g., "---5" or "----")
 
-            const noteSlotWidth = 4; // Characters for a fret number + dashes, e.g., "0---", "12--"
-            const barLineChar = '|';
+            // Determine the maximum length needed for the tablature lines based on number of notes
+            const maxNotes = melodyNotes.length;
+            // No need to calculate totalCharsForNotes and initialPadding for pre-filling dashes,
+            // as the loop below will build the strings incrementally.
 
-            // Calculate initial length of the string name part + bar
-            const initialLength = tabLines[0].length;
+            let currentXOffset = 0; // Tracks the horizontal position for notes in terms of "slots"
+
+            // Initialize all tab lines with enough dashes to cover all notes
+            const estimatedTotalLength = (maxNotes * noteSlotWidth) + (Math.ceil(maxNotes / 4) * 1) + 10; // +1 for each bar, + some buffer
+            for (let i = 0; i < NUM_STRINGS; i++) {
+                tabLines[i] += '-'.repeat(estimatedTotalLength);
+            }
+
 
             melodyNotes.forEach((note, noteIndex) => {
                 const noteName = note.match(/[A-G][b#]?/)[0];
                 const octave = parseInt(note.match(/\d/)[0]);
                 const fretInfo = getFretAndString(noteName, octave);
 
-                // Add dashes for the current note slot to all strings
-                for (let i = 0; i < NUM_STRINGS; i++) {
-                    tabLines[i] += '-'.repeat(noteSlotWidth);
-                }
+                // Calculate the start position for this note's fret number within its slot
+                const startCharIdx = currentXOffset;
 
-                if (fretInfo) {
-                    const fretString = fretInfo.fret.toString();
-                    const stringIdx = fretInfo.string;
+                for (let stringIdx = 0; stringIdx < NUM_STRINGS; stringIdx++) {
                     let lineArray = tabLines[stringIdx].split('');
-                    
-                    // Calculate the position to insert the fret number
-                    // It's the initial length + (current note index * slot width) + (slot width - fret string length)
-                    const insertPos = initialLength + (noteIndex * noteSlotWidth) + (noteSlotWidth - fretString.length);
-
-                    // Ensure the insert position is within bounds
-                    if (insertPos >= 0 && insertPos + fretString.length <= lineArray.length) {
+                    if (fretInfo && stringIdx === fretInfo.string) {
+                        const fretString = fretInfo.fret.toString();
+                        // Place fret number, right-aligned in its slot
+                        const fretStart = startCharIdx + (noteSlotWidth - fretString.length);
                         for (let k = 0; k < fretString.length; k++) {
-                            lineArray[insertPos + k] = fretString[k];
+                            lineArray[fretStart + k] = fretString[k];
                         }
-                        tabLines[stringIdx] = lineArray.join('');
-                    } else {
-                        console.warn(`Fret number insertion out of bounds for note ${note} at index ${noteIndex}.`);
                     }
+                    tabLines[stringIdx] = lineArray.join('');
                 }
+
+                currentXOffset += noteSlotWidth; // Move to the next slot
 
                 // Add measure bar (simplified: every 4 notes, but not after the very last note)
                 if ((noteIndex + 1) % 4 === 0 && noteIndex !== melodyNotes.length - 1) {
-                    for (let i = 0; i < NUM_STRINGS; i++) {
-                        tabLines[i] += barLineChar;
-                    }
+                     for (let i = 0; i < NUM_STRINGS; i++) {
+                        let lineArray = tabLines[i].split('');
+                        lineArray.splice(currentXOffset, 0, '|'); // Insert bar at current offset
+                        tabLines[i] = lineArray.join('');
+                     }
+                     currentXOffset += 1; // Account for the inserted bar
                 }
             });
 
-            // Ensure all lines end with a bar
+            // Ensure all lines end with a bar and trim excess dashes
             for (let i = 0; i < NUM_STRINGS; i++) {
-                if (!tabLines[i].endsWith(barLineChar)) {
-                    tabLines[i] += barLineChar;
+                // Find the last non-dash character position
+                let lastCharPos = tabLines[i].length - 1;
+                while (lastCharPos >= 0 && tabLines[i][lastCharPos] === '-') {
+                    lastCharPos--;
+                }
+                tabLines[i] = tabLines[i].substring(0, lastCharPos + 1);
+
+                if (!tabLines[i].endsWith('|')) {
+                    tabLines[i] += '|';
                 }
             }
 
@@ -1817,84 +1808,19 @@
         // Key Signatures (simplification: only for C major/A minor, G major/E minor, F major/D minor)
         const keySignatures = staticMusicalData.armaduras_clave;
 
-        // Function to draw key signature on a staff (for composition section)
-        function drawKeySignature(svg, rootNote, startX, staffStartY, lineSpacing) {
-            const keyInfoSharps = keySignatures.sostenidos[rootNote];
-            const keyInfoFlats = keySignatures.bemoles[rootNote];
+        // Function to draw a miniature key signature around the circle
+        // (This function is only for the circle of fifths visual, not for the composition staff)
+        // No need to remove it, as it's not used in the composition section's staff anymore.
 
-            let currentKeyX = startX;
-            const symbolSpacing = 15; // Spacing between sharps/flats
-
-            // Sharps positions (relative to staffStartY)
-            const sharpYPositions = {
-                "F#": staffStartY + (3 * lineSpacing), // F4
-                "C#": staffStartY + (4 * lineSpacing) + (lineSpacing / 2), // C4
-                "G#": staffStartY + (2 * lineSpacing) + (lineSpacing / 2), // G4
-                "D#": staffStartY + (3 * lineSpacing) + (lineSpacing / 2), // D4
-                "A#": staffStartY + (2 * lineSpacing), // A4
-                "E#": staffStartY + (1 * lineSpacing) + (lineSpacing / 2), // E4
-                "B#": staffStartY + (1 * lineSpacing), // B4
-            };
-
-            // Flats positions (relative to staffStartY)
-            const flatYPositions = {
-                "Bb": staffStartY + (2 * lineSpacing) + (lineSpacing / 2), // B4
-                "Eb": staffStartY + (3 * lineSpacing) + (lineSpacing / 2), // E4
-                "Ab": staffStartY + (1 * lineSpacing), // A4
-                "Db": staffStartY + (2 * lineSpacing), // D4
-                "Gb": staffStartY + (0 * lineSpacing) + (lineSpacing / 2), // G4
-                "Cb": staffStartY + (1 * lineSpacing) + (lineSpacing / 2), // C5
-                "Fb": staffStartY + (3 * lineSpacing), // F4
-            };
-
-
-            if (keyInfoSharps > 0) {
-                const sharpOrder = ["F#", "C#", "G#", "D#", "A#", "E#", "B#"];
-                for (let i = 0; i < keyInfoSharps; i++) {
-                    const sharpNote = sharpOrder[i];
-                    const yPos = sharpYPositions[sharpNote];
-                    if (yPos !== undefined) {
-                        const sharp = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        sharp.setAttribute("x", currentKeyX);
-                        sharp.setAttribute("y", yPos + 7); // Adjust for vertical centering
-                        sharp.setAttribute("font-family", "Arial, sans-serif"); // Generic font for symbol
-                        sharp.setAttribute("font-size", "20px");
-                        sharp.setAttribute("fill", "#e2e8f0");
-                        sharp.textContent = "#"; // Sharp symbol
-                        svg.appendChild(sharp);
-                        currentKeyX += symbolSpacing;
-                    }
-                }
-            } else if (keyInfoFlats > 0) {
-                const flatOrder = ["Bb", "Eb", "Ab", "Db", "Gb", "Cb", "Fb"];
-                for (let i = 0; i < keyInfoFlats; i++) {
-                    const flatNote = flatOrder[i];
-                    const yPos = flatYPositions[flatNote];
-                    if (yPos !== undefined) {
-                        const flat = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                        flat.setAttribute("x", currentKeyX);
-                        flat.setAttribute("y", yPos + 7); // Adjust for vertical centering
-                        flat.setAttribute("font-family", "Arial, sans-serif"); // Generic font for symbol
-                        flat.setAttribute("font-size", "20px");
-                        flat.setAttribute("fill", "#e2e8f0");
-                        flat.textContent = "b"; // Flat symbol
-                        svg.appendChild(flat);
-                        currentKeyX += symbolSpacing;
-                    }
-                }
-            }
-            return currentKeyX; // Return the x position after key signature
-        }
-
-        // Función para dibujar solo la tablatura
-        function drawTablatureOnly(notes = []) {
-            console.log("drawTablatureOnly called with notes:", notes);
+        // Function to draw only the melody tablature
+        function drawMelodyTablature(notes = []) {
+            console.log("drawMelodyTablature called with notes:", notes);
             const tabSvg = document.getElementById("melody-tablature-svg");
-            tabSvg.innerHTML = ''; // Limpia cualquier dibujo anterior
+            tabSvg.innerHTML = ''; // Clear any previous drawing
 
             const tabWidth = 800;
-            const tabHeight = 150;
-            const tabStartY = 20; // Posición Y inicial para la tablatura
+            const tabHeight = 150; // Adjusted height for tablature only
+            const tabStartY = 20; // Initial Y position for tablature
             const tabLineSpacing = 15;
 
             // Set viewBox for responsive scaling
@@ -1921,7 +1847,7 @@
                 tabText.textContent = line;
                 tabSvg.appendChild(tabText);
             });
-            console.log("Tablature drawn.");
+            console.log("Melody tablature drawn.");
         }
 
         // Chord diagram templates (fingers are absolute frets, or relative to barre fret for barre shapes)
@@ -2346,7 +2272,7 @@
             const strumPatterns = {
                 "facil": [
                     [{ type: "down", beat: "1" }, { type: "down", beat: "2" }, { type: "down", beat: "3" }, { type: "down", beat: "4" }],
-                    [{ type: "down", beat: "1" }, { type: "rest", beat: " " }, { type: "down", beat: "2" }, { type: "rest", beat: " " }, { type: "down", beat: "3" }, { type: "rest", beat: " " }, { type: "down", beat: "4" }, { type: "rest", beat: " " }]
+                    [{ type: "down", beat: "1" }, { type: "rest", beat: "X" }, { type: "down", beat: "2" }, { type: "rest", beat: "X" }, { type: "down", beat: "3" }, { type: "rest", beat: "X" }, { type: "down", beat: "4" }, { type: "rest", beat: "X" }]
                 ],
                 "intermedio": [
                     [{ type: "down", beat: "1" }, { type: "up", beat: "&" }, { type: "down", beat: "2" }, { type: "up", beat: "&" }, { type: "down", beat: "3" }, { type: "up", beat: "&" }, { type: "down", beat: "4" }, { type: "up", beat: "&" }],
@@ -2621,7 +2547,7 @@
             document.getElementById("song-idea-output").classList.add("hidden");
             document.getElementById("song-idea-title").textContent = "";
             document.getElementById("song-structure-table-body").innerHTML = "";
-            document.getElementById("melody-tablature-svg").innerHTML = ""; // Changed ID
+            document.getElementById("melody-tablature-svg").innerHTML = ""; // Now targets tablature SVG
             document.getElementById("solo-intention-text").textContent = "";
             document.getElementById("solo-proposal-text").textContent = "";
             document.getElementById("chord-diagrams-container").innerHTML = ""; // Limpia diagramas
@@ -2692,7 +2618,7 @@
                 ],
                 "avanzado": [
                     [diatonicChordsMajor.ii + "m7", diatonicChordsMajor.V + "7", diatonicChordsMajor.I + "maj7", diatonicChordsMajor.IV + "maj7"],
-                    [diatonicChordsMinor.i + "m7", diatonicChordsMinor.VI + "", diatatonicChordsMinor.VII + "", diatonicChordsMinor.i + "m7"], // Natural minor progression
+                    [diatonicChordsMinor.i + "m7", diatonicChordsMinor.VI + "", diatonicChordsMinor.VII + "", diatonicChordsMinor.i + "m7"], // Natural minor progression
                     [diatonicChordsMajor.I + "add9", diatonicChordsMajor.IV + "maj7", diatonicChordsMajor.vii + "°", diatonicChordsMajor.iii + "m7"],
                     [diatonicChordsMajor.vi + "m7", diatonicChordsMajor.ii + "m7b5", diatonicChordsMajor.V + "7", diatonicChordsMajor.I + "maj7"] // Jazz ii-V-I from vi
                 ]
@@ -2769,7 +2695,7 @@
 
             const structureTableBody = document.getElementById("song-structure-table-body");
             structureTableBody.innerHTML = "";
-            let allMelodyNotesForTab = []; // Para la tablatura del solo
+            let allMelodyNotes = []; // Para la tablature
             let allUniqueChords = new Set(); // Usar un Set para evitar acordes duplicados
 
             songIdea.structure.forEach(section => {
@@ -2788,6 +2714,7 @@
                 if (section.chords) {
                     section.chords.forEach(chord => allUniqueChords.add(chord));
                 }
+                allMelodyNotes = allMelodyNotes.concat(melodyNotes);
             });
 
             document.getElementById("solo-intention-text").textContent = songIdea.soloIntention;
@@ -2829,7 +2756,7 @@
             drawStrummingPattern("strum-pattern-container", songIdea.strumPatternComplexity);
 
             // Dibuja la tablatura con las notas del solo
-            drawTablatureOnly(songIdea.soloMelodyNotes); // Pass solo melody notes
+            drawMelodyTablature(songIdea.soloMelodyNotes); // Pass solo melody notes
             console.log("Song idea displayed.");
         }
 
