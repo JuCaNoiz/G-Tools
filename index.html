@@ -1,0 +1,2627 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Círculo de Quintas Pro para Guitarristas</title>
+    <!-- Incluye Tailwind CSS para estilos rápidos y responsivos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente Inter para un look moderno -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Fondo oscuro */
+            color: #e2e8f0; /* Texto claro */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        /* Contenedor principal para organizar el layout */
+        .main-container {
+            display: flex;
+            flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+            gap: 20px; /* Espacio entre las secciones */
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px; /* Ancho máximo para el contenido */
+        }
+        /* Estilos para los círculos de las notas en SVG (círculo exterior) */
+        .note-circle {
+            transition: transform 0.2s ease-in-out, fill 0.2s ease-in-out; /* Transiciones suaves */
+            cursor: pointer; /* Cursor de mano para indicar que es clicable */
+            fill: #63728a; /* Color de fondo por defecto de la nota mayor (más claro) */
+            stroke: #a0aec0; /* Borde de la nota */
+            stroke-width: 2; /* Grosor del borde */
+            border-radius: 9999px; /* Para que sea completamente redondo */
+        }
+        /* Estilos para el texto de las notas mayores */
+        .note-text {
+            fill: #e2e8f0; /* Color del texto de la nota */
+            pointer-events: none; /* Permite que los clics pasen al círculo de abajo */
+            font-size: 1.25rem; /* Tamaño de texto (text-xl en Tailwind) */
+            font-weight: 600; /* Negrita (font-semibold en Tailwind) */
+            user-select: none; /* Evita que se seleccione el texto al arrastrar */
+        }
+        /* Efecto al pasar el mouse sobre el grupo de la nota mayor */
+        .note-group.major:hover .note-circle {
+            transform: scale(1.1); /* Agranda ligeramente el círculo */
+            fill: #63b3ed; /* Azul claro al pasar el mouse */
+        }
+        /* Estilos para las notas mayores resaltadas */
+        .note-group.major.highlighted-major-chord .note-circle {
+            fill: #f6ad55; /* Naranja para los acordes mayores resaltados */
+            stroke: #ed8936; /* Borde naranja más oscuro */
+        }
+        /* Estilos para el texto de las notas mayores resaltadas */
+        .note-group.major.highlighted-major-chord .note-text {
+            fill: #1a202c; /* Texto oscuro para contraste con el fondo naranja */
+        }
+
+        /* Estilos para los círculos de las notas del círculo interno (menores) */
+        .minor-note-circle {
+            transition: transform 0.2s ease-in-out, fill 0.2s ease-in-out;
+            cursor: pointer;
+            fill: #4a5568; /* Un gris más oscuro para el fondo de la nota menor (más claro) */
+            stroke: #a0aec0;
+            stroke-width: 2;
+            border-radius: 9999px;
+        }
+        /* Estilos para el texto de las notas menores */
+        .minor-note-text {
+            fill: #e2e8f0;
+            pointer-events: none;
+            font-size: 1rem; /* Un poco más pequeño que las mayores */
+            font-weight: 600;
+            user-select: none;
+        }
+        /* Efecto al pasar el mouse sobre el grupo de la nota menor */
+        .note-group.minor:hover .minor-note-circle {
+            transform: scale(1.1);
+            fill: #9f7aea; /* Morado claro al pasar el mouse */
+        }
+        /* Estilos para las notas menores resaltadas */
+        .note-group.minor.highlighted-minor-chord .minor-note-circle {
+            fill: #9f7aea; /* Morado para los acordes menores/disminuidos resaltados */
+            stroke: #7c3aed;
+        }
+        /* Estilos para el texto de las notas menores resaltadas */
+        .note-group.minor.highlighted-minor-chord .minor-note-text {
+            fill: #1a202c;
+        }
+
+        /* Estilo para el círculo central del SVG */
+        .center-circle {
+            fill: #2d3748; /* Gris más oscuro para el centro */
+            stroke: #a0aec0; /* Borde del círculo central */
+            stroke-width: 2;
+        }
+        /* Estilo para las líneas que conectan las notas del círculo exterior */
+        .line {
+            stroke: #a0aec0; /* Color de las líneas */
+            stroke-width: 1;
+            opacity: 0.5; /* Ligeramente transparentes */
+        }
+        /* Estilo para las líneas que conectan mayor y menor relativa */
+        .relative-line {
+            stroke: #63b3ed; /* Azul para conectar mayor y menor */
+            stroke-width: 1.5;
+            opacity: 0.7;
+        }
+
+        /* Estilos para el diapasón */
+        #fretboard-svg {
+            background-color: #5a3e2b; /* Color madera del diapasón */
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        /* Estilos para la sección de composición */
+        .composition-section {
+            background-color: #2d3748; /* Fondo más oscuro para la sección de composición */
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            width: 100%;
+        }
+        /* Estilos para el pentagrama simplificado */
+        .staff-line {
+            stroke: #e2e8f0;
+            stroke-width: 1.5;
+        }
+        .treble-clef {
+            fill: #e2e8f0;
+        }
+        /* ¡Aquí el cambio! Color de texto de nota en el pentagrama, ahora más visible */
+        .staff-note-text {
+            fill: #f6ad55; /* Naranja para las notas en el pentagrama */
+            font-size: 12px; /* Tamaño más pequeño para cabezas de nota */
+            font-weight: bold;
+        }
+        .staff-chord-text {
+            fill: #f6ad55;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #f6ad55;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Estilos para la tablatura */
+        .tablature-text {
+            fill: #e2e8f0;
+            font-family: 'monospace'; /* Fuente monoespaciada para alineación */
+            font-size: 14px;
+        }
+        /* Estilos para los diagramas de acordes */
+        .chord-diagram-svg {
+            border: 1px solid #a0aec0;
+            border-radius: 4px;
+            background-color: #2d3748;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .fret-line {
+            stroke: #e2e8f0;
+            stroke-width: 1;
+        }
+        .string-line {
+            stroke: #a0aec0;
+            stroke-width: 1.5;
+        }
+        .nut-line {
+            stroke: #e2e8f0;
+            stroke-width: 3;
+        }
+        .finger-dot {
+            fill: #f6ad55;
+            stroke: #ed8936;
+            stroke-width: 1;
+        }
+        .open-string-marker {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 1.5;
+        }
+        .muted-string-marker {
+            fill: #e2e8f0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        /* Estilos para el patrón de rasgueo */
+        .strum-pattern-svg {
+            background-color: #2d3748;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        .strum-arrow {
+            fill: #e2e8f0;
+        }
+        .strum-beat-text {
+            fill: #a0aec0;
+            font-size: 14px;
+        }
+
+        /* Estilos para el afinador */
+        .tuner-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .tuner-content {
+            background-color: #2d3748;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            text-align: center;
+        }
+        .tuner-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+        .tuner-note-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #f6ad55;
+            margin-bottom: 10px;
+        }
+        .tuner-cents-display {
+            font-size: 1.5rem;
+            color: #a0aec0;
+            margin-bottom: 20px;
+        }
+        .tuner-needle-container {
+            width: 80%;
+            max-width: 300px;
+            height: 50px;
+            background-color: #1a202c;
+            border-radius: 25px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .tuner-needle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            width: 4px;
+            height: 40px;
+            background-color: #f6ad55;
+            transition: transform 0.1s linear;
+        }
+        .tuner-center-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background-color: #63b3ed;
+        }
+        .tuner-range-indicator {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background-color: rgba(99, 179, 237, 0.3); /* blue-300 with transparency */
+            border-radius: 25px;
+        }
+        .tuner-range-indicator.flat {
+            left: 0;
+        }
+        .tuner-range-indicator.sharp {
+            right: 0;
+        }
+        .tuner-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .tuner-controls select, .tuner-controls button, .tuner-controls input[type="range"] {
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: #4a5568;
+            color: #e2e8f0;
+            border: 1px solid #63b3ed;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tuner-controls select:focus, .tuner-controls button:focus, .tuner-controls input[type="range"]:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.5);
+        }
+        .tuner-controls button:hover {
+            background-color: #63b3ed;
+        }
+
+        /* Metronome styles */
+        .metronome-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .metronome-content {
+            background-color: #2d3748;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            text-align: center;
+        }
+        .metronome-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+        .metronome-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #f6ad55;
+            margin-bottom: 20px;
+        }
+        .metronome-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .metronome-controls input[type="range"] {
+            width: 80%;
+            max-width: 300px;
+            -webkit-appearance: none;
+            height: 10px;
+            background: #4a5568;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .metronome-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #63b3ed;
+            cursor: pointer;
+        }
+        .metronome-controls input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #63b3ed;
+            cursor: pointer;
+        }
+        .metronome-beat-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4a5568;
+            display: inline-block;
+            margin: 0 5px;
+            transition: background-color 0.1s;
+        }
+        .metronome-beat-indicator.active {
+            background-color: #f6ad55;
+        }
+        .metronome-beat-indicator.first-beat {
+            background-color: #63b3ed;
+        }
+        /* Estilos para la tabla de acordes diatónicos */
+        .diatonic-chords-section {
+            background-color: #2d3748;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            width: 100%;
+        }
+        .diatonic-chords-table {
+            width: 100%;
+            text-align: center;
+            border-collapse: collapse;
+        }
+        .diatonic-chords-table th, .diatonic-chords-table td {
+            border: 1px solid #4a5568;
+            padding: 8px;
+        }
+        .diatonic-chords-table th {
+            background-color: #4a5568;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+        .diatonic-chords-table td {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        .diatonic-chords-table .chord-name {
+            font-weight: bold;
+            color: #f6ad55; /* Naranja para los nombres de acordes */
+        }
+
+        /* Estilos para las armaduras de clave en el círculo */
+        .key-signature-group {
+            pointer-events: none; /* No debe ser clicable */
+            user-select: none;
+        }
+        .mini-staff-line {
+            stroke: #a0aec0;
+            stroke-width: 0.5;
+        }
+        .mini-clef {
+            fill: #a0aec0;
+        }
+        .key-symbol {
+            fill: #a0aec0;
+            font-size: 10px; /* Tamaño pequeño para los símbolos */
+            font-family: 'Arial', sans-serif; /* Fuente genérica para los símbolos */
+            font-weight: bold;
+        }
+
+        /* Fretboard legend styles */
+        .fretboard-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #2d3748;
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #a0aec0;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="max-w-6xl w-full bg-gray-800 rounded-lg shadow-xl p-6 md:p-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-orange-400 mb-6">G-Tolls</h1>
+        <p class="text-center text-lg mb-8">
+            Dale clic a cualquier nota en el círculo (mayor o menor) para ver los acordes diatónicos de esa tonalidad
+
+        </p>
+
+        <!-- Botones para abrir el afinador y el metrónomo -->
+        <div class="flex justify-center gap-4 mb-8">
+            <button id="open-tuner-button" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition duration-300 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96-1.425L12 18.354 7.373 21.18c-.996.608-2.231-.292-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.007Z" clip-rule="evenodd" />
+                </svg>
+                Afinador
+            </button>
+            <button id="open-metronome-button" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition duration-300 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clip-rule="evenodd" />
+                </svg>
+                Metrónomo
+            </button>
+        </div>
+
+        <!-- Contenedores principales para el layout flexible -->
+        <div class="main-container">
+            <!-- Columna Izquierda: Círculo de Quintas -->
+            <div class="flex flex-col items-center w-full md:w-3/5 lg:w-1/2 p-4 bg-gray-700 rounded-lg shadow-md">
+                <div id="circle-container" class="flex justify-center items-center w-full aspect-square mx-auto mb-8">
+                    <!-- El SVG del círculo de quintas se insertará aquí con JavaScript -->
+                </div>
+
+                <!-- Botón de Reiniciar -->
+                <div class="mt-4 flex justify-center w-full">
+                    <button id="reset-button" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg hover:bg-red-700 transition duration-300">
+                        Reiniciar Selección
+                    </button>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Explicación de Teoría Musical -->
+            <div class="flex flex-col w-full md:w-2/5 lg:w-1/2 p-4 bg-gray-700 rounded-lg shadow-md">
+                <div id="info-display" class="bg-gray-700 p-4 rounded-lg shadow-inner text-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-300 mb-2" id="selected-key-title">Selecciona una tonalidad...</h2>
+                    <p class="text-xl" id="scale-notes-display">Las notas diatónicas aparecerán aquí.</p>
+                </div>
+
+                <div id="theory-explanation" class="bg-gray-700 p-4 rounded-lg shadow-inner text-left">
+                    <h3 class="text-xl font-semibold text-orange-300 mb-2">Teoría Musical de la Selección:</h3>
+                    <p id="current-theory-text" class="text-base">
+                        Aquí aparecerá una explicación breve sobre la tonalidad mayor o menor que selecciones en el círculo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nueva sección para la tabla de acordes diatónicos -->
+        <div class="diatonic-chords-section w-full max-w-4xl mx-auto mt-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold text-center text-orange-400 mb-4">Acordes Diatónicos en <span id="diatonic-chords-key-display">--</span></h2>
+            <table class="diatonic-chords-table">
+                <thead>
+                    <tr>
+                        <th>I</th>
+                        <th>ii</th>
+                        <th>iii</th>
+                        <th>IV</th>
+                        <th>V</th>
+                        <th>vi</th>
+                        <th>vii°</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Tónica</td>
+                        <td>Supertónica</td>
+                        <td>Mediante</td>
+                        <td>Subdominante</td>
+                        <td>Dominante</td>
+                        <td>Superdominante</td>
+                        <td>Sensible</td>
+                    </tr>
+                    <tr id="diatonic-chords-row">
+                        <!-- Los acordes se insertarán aquí con JavaScript -->
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- New section for Modes and Fretboard -->
+        <div class="modes-fretboard-section w-full max-w-4xl mx-auto mt-8 bg-gray-700 rounded-lg p-4 shadow-lg">
+            <h2 class="text-3xl font-bold text-center text-orange-400 mb-6">¡Explora los Modos Griegos!</h2>
+
+            <div class="flex flex-col items-center w-full mb-6">
+                <label for="mode-select" class="text-xl font-semibold mb-2 text-blue-300">Elige tu modo griego:</label>
+                <select id="mode-select" class="p-2 rounded-md bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-xs">
+                    <!-- Las opciones se llenarán con JavaScript -->
+                </select>
+            </div>
+
+            <div class="flex flex-col items-center w-full mb-6">
+                <label for="fretboard-position-select" class="text-xl font-semibold mb-2 text-blue-300">Posición de la Escala:</label>
+                <select id="fretboard-position-select" class="p-2 rounded-md bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full max-w-xs">
+                    <option value="Full Fretboard">Diapasón Completo</option>
+                    <option value="Position 1">Posición 1</option>
+                    <option value="Position 2">Posición 2</option>
+                    <option value="Position 3">Posición 3</option>
+                    <option value="Position 4">Posición 4</option>
+                    <option value="Position 5">Posición 5</option>
+                </select>
+            </div>
+
+            <div id="mode-details-display" class="bg-gray-800 p-4 rounded-lg shadow-inner text-center mb-6">
+                <h3 class="text-xl font-semibold text-blue-300 mb-2" id="selected-mode-title">Modo: --</h3>
+                <p class="text-base" id="mode-formula-display">Fórmula: --</p>
+                <p class="text-base" id="mode-notes-display">Notas de la escala: --</p>
+            </div>
+
+            <h2 class="text-2xl font-semibold text-blue-300 mb-4 text-center">Diapasón de Guitarra</h2>
+            <svg id="fretboard-svg" class="w-full h-auto" viewBox="0 0 800 250"></svg>
+
+            <div class="fretboard-legend">
+                <div class="legend-item">
+                    <div class="legend-color-box" style="background-color: #f6ad55;"></div>
+                    <span>Notas Fundamentales (Tónica)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color-box" style="background-color: #63b3ed;"></div>
+                    <span>Notas de Resolución (Dominante, Sensible)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color-box" style="background-color: #48bb78;"></div>
+                    <span>Notas de Descanso (Mediante, Submediante)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color-box" style="background-color: #9f7aea;"></div>
+                    <span>Otras Notas de la Escala</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Composición de Rola -->
+        <div class="composition-section w-full max-w-4xl mx-auto mt-8">
+            <h2 class="text-3xl font-bold text-center text-orange-400 mb-6">¡Genera tu Idea de Rola!</h2>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-6">
+                <div class="flex flex-col items-center">
+                    <label for="feeling-select" class="text-lg font-semibold mb-2 text-blue-300">Sentimiento:</label>
+                    <select id="feeling-select" class="p-2 rounded-md bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="feliz">Feliz</option>
+                        <option value="triste">Triste</option>
+                        <option value="energico">Enérgico</option>
+                        <option value="relajado">Relajado</option>
+                        <option value="misterioso">Misterioso</option>
+                    </select>
+                </div>
+                <div class="flex flex-col items-center">
+                    <label for="style-select" class="text-lg font-semibold mb-2 text-blue-300">Estilo:</label>
+                    <select id="style-select" class="p-2 rounded-md bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="rock">Rock</option>
+                        <option value="pop">Pop</option>
+                        <option value="blues">Blues</option>
+                        <option value="jazz">Jazz</option>
+                        <option value="folk">Folk</option>
+                        <option value="metal">Metal</option>
+                        <option value="electronica">Electrónica</option>
+                    </select>
+                </div>
+                <div class="flex flex-col items-center">
+                    <label for="complexity-select" class="text-lg font-semibold mb-2 text-blue-300">Complejidad:</label>
+                    <select id="complexity-select" class="p-2 rounded-md bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="facil">Fácil</option>
+                        <option value="intermedio">Intermedio</option>
+                        <option value="avanzado">Avanzado</option>
+                    </select>
+                </div>
+                <!-- Selector para el número de modos -->
+                <div class="flex flex-col items-center">
+                    <label for="num-modes-select" class="text-lg font-semibold mb-2 text-blue-300">Número de Modos:</label>
+                    <select id="num-modes-select" class="p-2 rounded-md bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="generate-song-idea-button" class="px-8 py-4 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition duration-300 w-full mb-6">
+                Generar Idea de Rola
+            </button>
+
+            <div id="loading-spinner" class="loading-spinner hidden"></div>
+
+            <div id="song-idea-output" class="bg-gray-800 p-6 rounded-lg shadow-inner hidden">
+                <!-- Aquí se mostrará la idea de rola generada -->
+                <h3 class="text-2xl font-bold text-orange-300 mb-4" id="song-idea-title"></h3>
+
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold text-blue-300 mb-2">Estructura del Tema:</h4>
+                    <table class="w-full text-left table-auto border-collapse">
+                        <thead>
+                            <tr class="bg-gray-700">
+                                <th class="p-2 border border-gray-600">Sección</th>
+                                <th class="p-2 border border-gray-600">Compases</th>
+                                <th class="p-2 border border-gray-600">Acordes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="song-structure-table-body">
+                            <!-- Contenido de la tabla aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold text-blue-300 mb-2">Diagramas de Acordes:</h4>
+                    <div id="chord-diagrams-container" class="flex flex-wrap justify-center gap-4 mb-4">
+                        <!-- Los diagramas de acordes se insertarán aquí -->
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold text-blue-300 mb-2">Patrón de Rasgueo Sugerido:</h4>
+                    <div id="strum-pattern-container" class="flex justify-center items-center p-4 rounded-md bg-gray-900">
+                        <!-- El patrón de rasgueo se insertará aquí -->
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold text-blue-300 mb-2">Melodía (Pentagrama y Tablatura):</h4>
+                    <div class="bg-gray-900 p-4 rounded-md overflow-x-auto">
+                        <svg id="melody-staff-svg" class="w-full" height="250" viewBox="0 0 800 250"></svg>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold text-blue-300 mb-2">Intención del Solo:</h4>
+                    <p id="solo-intention-text" class="text-base"></p>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="text-xl font-semibold text-blue-300 mb-2">Propuesta de Solo (Notas):</h4>
+                    <p id="solo-proposal-text" class="text-base"></p>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8">
+                    <button id="print-button" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-lg hover:bg-blue-700 transition duration-300">
+                        Imprimir
+                    </button>
+                    <button id="export-midi-button" class="px-6 py-3 bg-purple-600 text-white font-bold rounded-lg shadow-lg hover:bg-purple-700 transition duration-300">
+                        Exportar a MIDI
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tuner Modal -->
+    <div id="tuner-modal" class="tuner-modal hidden">
+        <div class="tuner-content">
+            <button id="close-tuner-button" class="tuner-close-button">&times;</button>
+            <h2 class="text-3xl font-bold text-orange-400 mb-4">¡Afinador de Guitarra!</h2>
+            <p class="text-lg text-blue-300 mb-4">¡Toca una cuerda para afinarla!</p>
+
+            <div class="tuner-controls">
+                <label for="tuner-tuning-select" class="text-lg font-semibold text-blue-300">Afinación:</label>
+                <select id="tuner-tuning-select">
+                    <!-- Options populated by JS -->
+                </select>
+
+                <label for="tuner-strings-select" class="text-lg font-semibold text-blue-300">Cuerdas:</label>
+                <select id="tuner-strings-select">
+                    <option value="6">6 cuerdas</option>
+                    <option value="7">7 cuerdas</option>
+                    <option value="8">8 cuerdas</option>
+                </select>
+
+                <div class="w-full flex flex-col items-center mt-4">
+                    <label for="a4-frequency-slider" class="text-lg font-semibold text-blue-300">Frecuencia de A4:</label>
+                    <input type="range" id="a4-frequency-slider" min="420" max="480" value="440" class="w-full max-w-xs mt-2">
+                    <span id="a4-frequency-display" class="text-xl font-bold text-orange-300 mt-2">440 Hz</span>
+                </div>
+            </div>
+
+            <div class="tuner-note-display" id="tuner-note">--</div>
+            <div class="tuner-cents-display" id="tuner-cents">-- Cents</div>
+
+            <div class="tuner-needle-container">
+                <div class="tuner-range-indicator flat" style="width: 45%;"></div>
+                <div class="tuner-range-indicator sharp" style="width: 45%;"></div>
+                <div class="tuner-center-line"></div>
+                <div class="tuner-needle" style="transform: rotate(0deg);"></div>
+            </div>
+
+            <div class="tuner-controls mt-6">
+                <button id="start-tuner-button">Iniciar Afinador</button>
+                <button id="stop-tuner-button">Detener Afinador</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metronome Modal -->
+    <div id="metronome-modal" class="metronome-modal hidden">
+        <div class="metronome-content">
+            <button id="close-metronome-button" class="metronome-close-button">&times;</button>
+            <h2 class="text-3xl font-bold text-orange-400 mb-4">¡Metrónomo Súper Pro!</h2>
+
+            <div class="metronome-display" id="metronome-bpm-display">120 BPM</div>
+
+            <div class="metronome-controls">
+                <label for="bpm-slider" class="text-lg font-semibold text-blue-300">Tempo (BPM):</label>
+                <input type="range" id="bpm-slider" min="40" max="240" value="120">
+                <label for="beats-per-measure-select" class="text-lg font-semibold text-blue-300">Golpes por compás:</label>
+                <select id="beats-per-measure-select">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4" selected>4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+                <div id="beat-indicators" class="flex justify-center mt-4 w-full">
+                    <!-- Beat indicators will be dynamically added here -->
+                </div>
+            </div>
+
+            <div class="metronome-controls mt-6">
+                <button id="start-metronome-button">Iniciar Metrónomo</button>
+                <button id="stop-metronome-button">Detener Metrónomo</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Static musical data provided by the user
+        const staticMusicalData = {
+            "notas": ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+            "notas_enarmonicas": {
+                "C#": "Db", "D#": "Eb", "F#": "Gb", "G#": "Ab", "A#": "Bb"
+            },
+            "grados": ["I", "II", "III", "IV", "V", "VI", "VII"],
+            "intervalos": [
+                "Unísono", "Segunda menor", "Segunda mayor", "Tercera menor", "Tercera mayor",
+                "Cuarta justa", "Tritono", "Quinta justa", "Sexta menor", "Sexta mayor",
+                "Séptima menor", "Séptima mayor", "Octava"
+            ],
+            "modos": [
+                "Jónico (Mayor)", "Dórico", "Frigio", "Lidio", "Mixolidio", "Eólico (Menor)", "Locrio"
+            ],
+            "escalas": {
+                "mayores": ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"],
+                "menores": ["A", "E", "B", "F#", "C#", "G#", "D#", "A#", "D", "G", "C", "F", "Bb", "Eb", "Ab"],
+                "pentatonicas": ["Mayor", "Menor", "Blues"],
+                "otros_tipos": ["Armónica menor", "Melódica menor", "Escala cromática", "Escala disminuida", "Escala aumentada"]
+            },
+            "acordes": {
+                "tipos_basicos": ["Mayor", "Menor", "Disminuido", "Aumentado"],
+                "cuatriadas": ["Maj7", "m7", "7", "m7b5", "dim7", "aug7", "mMaj7"],
+                "extendidos": ["9", "11", "13", "add9", "sus2", "sus4"],
+                "acordes_por_funcion": {
+                    "tonica": ["I", "vi", "iii"],
+                    "subdominante": ["ii", "IV"],
+                    "dominante": ["V", "vii°"]
+                }
+            },
+            "afinaciones": {
+                "estandar": ["EADGBE"],
+                "drop": {
+                    "Drop D": "DADGBE",
+                    "Drop C": "CGCFAD",
+                    "Drop B": "B F# B E G# C#",
+                    "Drop A": "A E A D F# B"
+                },
+                "afinaciones_7_cuerdas": {
+                    "Estándar": "BEADGBE",
+                    "Drop A": "AEADGBE"
+                },
+                "afinaciones_8_cuerdas": {
+                    "Estándar": "F#BEADGBE",
+                    "Drop E": "EBEADGBE"
+                }
+            },
+            "compases": [
+                "2/4", "3/4", "4/4", "5/4", "6/8", "7/8", "9/8", "12/8", "11/16", "15/16"
+            ],
+            "armonias": {
+                "armonias_diatonicas": {
+                    "mayor": ["I", "ii", "iii", "IV", "V", "vi", "vii°"],
+                    "menor": ["i", "ii°", "III", "iv", "v", "VI", "VII"]
+                },
+                "progresiones_comunes": [
+                    ["I", "IV", "V", "I"],
+                    ["ii", "V", "I"],
+                    ["I", "vi", "IV", "V"],
+                    ["I", "V", "vi", "IV"]
+                ]
+            },
+            "armaduras_clave": {
+                "sostenidos": {
+                    "G": 1, "D": 2, "A": 3, "E": 4, "B": 5, "F#": 6, "C#": 7
+                },
+                "bemoles": {
+                    "F": 1, "Bb": 2, "Eb": 3, "Ab": 4, "Db": 5, "Gb": 6, "Cb": 7
+                }
+            },
+            "tempos": {
+                "lento": "40-60 BPM",
+                "andante": "76-108 BPM",
+                "moderado": "108-120 BPM",
+                "rápido": "120-168 BPM",
+                "muy_rápido": "168-208 BPM"
+            },
+            "simbolos_partitura": [
+                "Clave de Sol", "Clave de Fa", "Compás", "Silencios", "Ligaduras", "Corcheas", "Semicorcheas",
+                "Fermata", "Calderón", "Repeticiones", "Da Capo", "Coda", "Trinos", "Glissando"
+            ],
+            "notacion_musical": {
+                "sistema_americano": ["C", "D", "E", "F", "G", "A", "B"]
+            }
+        };
+
+
+        // Array con las notas del Círculo de Quintas en orden (tonalidades mayores)
+        const circleNotes = [
+            "C", "G", "D", "A", "E", "B", "F#", "Db", "Ab", "Eb", "Bb", "F"
+        ];
+
+        // Objeto que mapea cada tonalidad mayor a su relativa menor
+        const relativeMinors = {
+            "C": "Am", "G": "Em", "D": "Bm", "A": "F#m", "E": "C#m", "B": "G#m",
+            "F#": "D#m", "Db": "Bbm", "Ab": "Fm", "Eb": "Cm", "Bb": "Gm", "F": "Dm"
+        };
+
+        // Mapa inverso para encontrar la tonalidad mayor relativa a partir de una menor
+        const relativeMajors = {};
+        for (const major in relativeMinors) {
+            relativeMajors[relativeMinors[major]] = major;
+        }
+
+        // Escala cromática con sostenidos
+        const fullChromaticScaleSharps = [
+            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+        ];
+
+        // Escala cromática con bemoles
+        const fullChromaticScaleFlats = [
+            "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
+        ];
+
+        // Mapa para manejar las notas enarmónicas (ej. C# es lo mismo que Db)
+        // Esto es crucial para que al resaltar, se reconozcan las notas equivalentes
+        const canonicalNotesMap = {
+            "C": "C", "C#": "C#", "Db": "C#",
+            "D": "D", "D#": "D#", "Eb": "D#",
+            "E": "E", "F": "F", "F#": "F#", "Gb": "F#",
+            "G": "G", "G#": "G#", "Ab": "G#",
+            "A": "A", "A#": "A#", "Bb": "A#",
+            "B": "B"
+            // E#, B#, Cb, Fb are less common in circle of fifths context but can be added if needed
+        };
+
+        // Función para obtener la forma "canónica" (estándar) de una nota
+        function getCanonicalNote(note) {
+            // Si la nota es una menor (ej. "Am"), solo tomamos la raíz ("A")
+            const baseNote = note.replace('m', '');
+            return canonicalNotesMap[baseNote] || baseNote;
+        }
+
+        // Helper para obtener el índice cromático de una nota
+        function getChromaticIndex(note) {
+            // Primero intenta con sostenidos, luego con bemoles
+            let index = fullChromaticScaleSharps.indexOf(note);
+            if (index === -1) {
+                index = fullChromaticScaleFlats.indexOf(note);
+            }
+            return index;
+        }
+
+        // Definiciones de los modos: intervalos en semitonos relativos a la tónica
+        const modesIntervals = {
+            "Jónico (Mayor)": { intervals: [0, 2, 4, 5, 7, 9, 11], formula: "T - T - S - T - T - T - S", theory: "El modo Jónico es nuestra escala mayor de toda la vida. Suena brillante y feliz. ¡Ideal para melodías principales y progresiones alegres!" },
+            "Dórico": { intervals: [0, 2, 3, 5, 7, 9, 10], formula: "T - S - T - T - T - S - T", theory: "El modo Dórico tiene un sonido menor pero con un toque de blues o jazz, gracias a su 6ª mayor. ¡Perfecto para un ambiente melancólico pero con onda!" },
+            "Frigio": { intervals: [0, 1, 3, 5, 7, 8, 10], formula: "S - T - T - T - S - T - T", theory: "El modo Frigio es oscuro y exótico por su 2ª menor. ¡Piensa en flamenco o metal! Le da un toque dramático a tus rolas." },
+            "Lidio": { intervals: [0, 2, 4, 6, 7, 9, 11], formula: "T - T - T - S - T - T - S", theory: "El modo Lidio es como la escala mayor pero con una 4ª aumentada. Suena etéreo, soñador y muy 'cinemático'. ¡Para darle un toque mágico a tus composiciones!" },
+            "Mixolidio": { intervals: [0, 2, 4, 5, 7, 9, 10], formula: "T - T - S - T - T - S - T", theory: "El modo Mixolidian es una escala mayor con una 7ª menor. Es la escala del blues y el rock por excelencia. ¡Suena a 'acorde dominante' y te da ese feeling de resolución!" },
+            "Eólico (Menor)": { intervals: [0, 2, 3, 5, 7, 8, 10], formula: "T - S - T - T - S - T - T", theory: "El modo Eólico es la escala menor natural. Suena triste, introspectivo, melancólico. ¡Es la base de la mayoría de las canciones en tonalidad menor!" },
+            "Locrio": { intervals: [0, 1, 3, 5, 6, 8, 10], formula: "S - T - T - S - T - T - T", theory: "El modo Lócrio es el más disonante por su 2ª menor y 5ª disminuida. Es inestable y se usa poco melódicamente, ¡pero puede crear tensión extrema en contextos experimentales!" }
+        };
+
+        // Nombres de los intervalos para mostrar su función en la composición
+        const intervalNames = staticMusicalData.intervalos;
+
+        // Función para obtener el nombre del intervalo basado en la diferencia de semitonos
+        function getIntervalName(semitones) {
+            return intervalNames[semitones % 12];
+        }
+
+        // Function to classify notes for the fretboard legend
+        function classifyNoteFunction(semitones) {
+            switch (semitones) {
+                case 0: return "fundamental"; // Root
+                case 7: // Perfect 5th
+                case 11: return "resolution"; // Major 7th (leading tone)
+                case 3: // Minor 3rd
+                case 4: // Major 3rd
+                case 8: // Minor 6th
+                case 9: return "resting"; // Major 6th
+                default: return "other";
+            }
+        }
+
+        // Función para generar las notas de una escala/modo dada una tónica y un modo, incluyendo sus intervalos
+        function getModeNotesWithIntervals(rootNote, modeName) {
+            const modeData = modesIntervals[modeName];
+            if (!modeData) {
+                console.error("Modo no encontrado:", modeName);
+                return [];
+            }
+            const intervals = modeData.intervals;
+
+            let modeNotes = [];
+            const rootIndex = getChromaticIndex(rootNote);
+            if (rootIndex === -1) {
+                console.error("Nota raíz no válida:", rootNote);
+                return [];
+            }
+
+            // Heurística simple para preferir sostenidos o bemoles en la ortografía de las notas
+            const preferFlats = rootNote.includes('b') || ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb'].includes(rootNote);
+            const chromaticScaleToUse = preferFlats ? fullChromaticScaleFlats : fullChromaticScaleSharps;
+
+            intervals.forEach(semitones => {
+                const noteIndex = (rootIndex + semitones + 12) % 12; // Asegura un índice positivo
+                modeNotes.push({
+                    note: chromaticScaleToUse[noteIndex],
+                    interval: getIntervalName(semitones),
+                    function: classifyNoteFunction(semitones) // Add function for coloring
+                });
+            });
+            return modeNotes;
+        }
+
+        // Dimensiones y propiedades para el SVG del Círculo de Quintas
+        const SVG_SIZE = 800; // Aumentado para hacer el círculo mucho más grande
+        const CENTER_X = SVG_SIZE / 2; // Centro en X
+        const CENTER_Y = SVG_SIZE / 2; // Centro en Y
+        const OUTER_RADIUS = 320; // Aumentado (original 200 * 1.6)
+        const INNER_RADIUS = 176; // Aumentado (original 110 * 1.6)
+        const NOTE_CIRCLE_RADIUS = 40; // Aumentado (original 35)
+        const KEY_SIGNATURE_RADIUS = 360; // Aumentado (original 290 * 1.25)
+
+        // Variables para llevar el control de la tonalidad y el modo seleccionados
+        let currentHighlightedKey = null; // Siempre será una tonalidad MAYOR (ej. "C", "G")
+        let currentSelectedMode = "Jónico (Mayor)"; // Modo por defecto
+        let currentFretboardPosition = "Full Fretboard"; // Posición del diapasón por defecto
+
+        // Fretboard constants
+        const NUM_FRETS = 24;
+        const NUM_STRINGS = 6;
+        const FRETBOARD_WIDTH = 800; // SVG viewBox width
+        const FRETBOARD_HEIGHT = 250; // SVG viewBox height
+        const FRET_SPACING = FRETBOARD_WIDTH / (NUM_FRETS + 1); // Spacing for frets, including nut
+        const STRING_SPACING = FRETBOARD_HEIGHT / (NUM_STRINGS + 1);
+
+        // Standard guitar tuning (EADGBe) - Chromatic index for open strings
+        // Low E (6th string) to High E (1st string)
+        const openStringNotes = [
+            { name: "E", octave: 4, index: getChromaticIndex("E") }, // 1st string (high E)
+            { name: "B", octave: 3, index: getChromaticIndex("B") }, // 2nd string
+            { name: "G", octave: 3, index: getChromaticIndex("G") }, // 3rd string
+            { name: "D", octave: 3, index: getChromaticIndex("D") }, // 4th string
+            { name: "A", octave: 2, index: getChromaticIndex("A") }, // 5th string
+            { name: "E", octave: 2, index: getChromaticIndex("E") }  // 6th string (low E)
+        ];
+
+        // Map note names to MIDI numbers (C4 = 60)
+        const noteToMidi = {
+            "C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5, "F#": 6, "Gb": 6,
+            "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11
+        };
+
+        // Helper function to convert note name (e.g., "C", "C#", "Db") to MIDI note number
+        // Assumes a base octave (e.g., C4 = 60). Adjust octave as needed.
+        function getMidiNoteNumber(noteName, octave = 4) {
+            const baseNoteIndex = noteToMidi[noteName.replace('b', '').replace('#', '')];
+            let midiNote = baseNoteIndex + (octave * 12);
+
+            if (noteName.includes('#')) midiNote += 1;
+            if (noteName.includes('b')) midiNote -= 1;
+
+            // Handle enharmonic edge cases for MIDI mapping (e.g., B# is C, Cb is B)
+            if (noteName === "B#") midiNote = 60 + ((octave + 1) * 12); // B# in octave 3 is C in octave 4 (MIDI 60)
+            if (noteName === "Cb") midiNote = 59 + ((octave - 1) * 12); // Cb in octave 4 is B in octave 3 (MIDI 59)
+            if (noteName === "E#") midiNote = 65 + ((octave) * 12); // E# in octave 4 is F in octave 4 (MIDI 65)
+            if (noteName === "Fb") midiNote = 64 + ((octave) * 12); // Fb in octave 4 is E in octave 4 (MIDI 64)
+
+            return midiNote;
+        }
+
+        // Helper to get the fret and string for a given note
+        function getFretAndString(noteName, targetOctave = 4) {
+            const targetMidi = getMidiNoteNumber(noteName, targetOctave);
+            if (targetMidi === -1) return null;
+
+            // Iterate through strings from low E (index 5) to high E (index 0)
+            // to prioritize finding the note on a lower string if possible.
+            for (let stringIdx = NUM_STRINGS - 1; stringIdx >= 0; stringIdx--) {
+                const openNoteMidi = getMidiNoteNumber(openStringNotes[stringIdx].name, openStringNotes[stringIdx].octave);
+                for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                    if ((openNoteMidi + fret) === targetMidi) {
+                        return { string: stringIdx, fret: fret };
+                    }
+                }
+            }
+            return null; // Note not found on fretboard within 24 frets
+        }
+
+        // Minor Scale CAGED Positions (relative frets within a 5-fret box, 0-4)
+        // rootStringIndex: The string index (0-5) where the root of THIS specific pattern is typically found.
+        // rootRelativeFretInBox: The fret number (0-4) within the 5-fret box where the root falls on rootStringIndex.
+        // pattern: An array of arrays, where each inner array represents the relative frets on a string (0-4).
+        const scalePositionPatterns = {
+            "Full Fretboard": null,
+            "Position 1": { // E-shape minor. Root on 6th string (or 5th for A minor)
+                rootStringIndex: 5, // Low E string
+                rootRelativeFretInBox: 0, // Root is at the start of the box on this string
+                pattern: [
+                    [0, 2, 3], // High E (relative frets)
+                    [0, 1, 3], // B
+                    [0, 2, 4], // G
+                    [0, 2, 4], // D
+                    [0, 2, 3], // A
+                    [0, 2, 3]  // Low E (root at 0)
+                ]
+            },
+            "Position 2": { // D-shape minor. Root on 4th string (D)
+                rootStringIndex: 3, // D string
+                rootRelativeFretInBox: 2, // Root is at relative fret 2 on this string
+                pattern: [
+                    [0, 1, 3],
+                    [0, 2, 3],
+                    [0, 2, 4], // G
+                    [0, 2, 4], // D (root at 2)
+                    [0, 2, 3], // A
+                    [0, 1, 3]  // Low E
+                ]
+            },
+            "Position 3": { // C-shape minor. Root on 5th string (A)
+                rootStringIndex: 4, // A string
+                rootRelativeFretInBox: 0, // Root is at relative fret 0 on this string
+                pattern: [
+                    [0, 1, 3],
+                    [0, 1, 3],
+                    [0, 2, 4],
+                    [0, 2, 3],
+                    [0, 2, 4], // A (root at 0)
+                    [0, 1, 3]
+                ]
+            },
+            "Position 4": { // A-shape minor. Root on 6th string (E)
+                rootStringIndex: 5, // Low E string
+                rootRelativeFretInBox: 3, // Root is at relative fret 3 on this string
+                pattern: [
+                    [0, 2, 3],
+                    [0, 1, 3],
+                    [0, 2, 4],
+                    [0, 2, 3],
+                    [0, 2, 4],
+                    [0, 2, 3] // Low E (root at 3)
+                ]
+            },
+            "Position 5": { // G-shape minor. Root on 6th string (E)
+                rootStringIndex: 5, // Low E string
+                rootRelativeFretInBox: 1, // Root is at relative fret 1 on this string
+                pattern: [
+                    [0, 1, 3],
+                    [0, 1, 3],
+                    [0, 2, 4],
+                    [0, 2, 3],
+                    [0, 2, 4],
+                    [0, 2, 3] // Low E (root at 1)
+                ]
+            }
+        };
+
+
+        // Function to generate tablature string
+        function generateTablatureString(melodyNotes) {
+            const tabLines = Array(NUM_STRINGS).fill('');
+            openStringNotes.forEach((string, idx) => {
+                tabLines[idx] = string.name.charAt(0).toUpperCase() + '|'; // E| B| G| D| A| E|
+            });
+
+            const charsPerNote = 4; // Characters for a fret number + dashes, e.g., "0--", "12-"
+            const notesPerMeasure = 4; // Assuming 4 notes per measure for simple alignment
+
+            let currentMeasureNotesCount = 0;
+
+            melodyNotes.forEach((note) => {
+                // Parse note and octave (e.g., "C4")
+                const noteName = note.match(/[A-G][b#]?/)[0];
+                const octave = parseInt(note.match(/\d/)[0]);
+
+                const fretInfo = getFretAndString(noteName, octave);
+                const fretString = fretInfo ? fretInfo.fret.toString() : '-'; // Use '-' if note not found
+
+                for (let i = 0; i < NUM_STRINGS; i++) {
+                    if (fretInfo && i === fretInfo.string) {
+                        tabLines[i] += fretString.padEnd(charsPerNote - 1, '-') + '|'; // Fret number + dashes + bar
+                    } else {
+                        tabLines[i] += '-'.repeat(charsPerNote - 1) + '|'; // Only dashes + bar
+                    }
+                }
+                currentMeasureNotesCount++;
+
+                // Add measure bar after every 'notesPerMeasure' notes
+                if (currentMeasureNotesCount >= notesPerMeasure) {
+                    currentMeasureNotesCount = 0;
+                }
+            });
+
+            // Ensure all lines end with a bar if they didn't already
+            for (let i = 0; i < NUM_STRINGS; i++) {
+                if (!tabLines[i].endsWith('|')) {
+                    tabLines[i] += '|';
+                }
+            }
+
+            return tabLines.join('\n');
+        }
+
+        // Función para llenar el selector de modos griegos
+        function populateModeDropdown() {
+            const modeSelect = document.getElementById("mode-select");
+            // Clear existing options
+            modeSelect.innerHTML = '';
+            staticMusicalData.modos.forEach(modeName => {
+                const option = document.createElement("option");
+                option.value = modeName;
+                option.textContent = modeName;
+                modeSelect.appendChild(option);
+            });
+            // Establece el modo por defecto
+            modeSelect.value = currentSelectedMode;
+
+            // Agrega un listener para cuando cambie el modo
+            modeSelect.addEventListener("change", (event) => {
+                currentSelectedMode = event.target.value;
+                updateModeDisplayAndFretboard(); // Llama a la nueva función para actualizar
+            });
+        }
+
+        // Key Signatures for the Circle of Fifths visual (simplified positions)
+        // Each entry defines the sharps/flats and their relative Y positions on a mini-staff.
+        // Y positions are relative to a conceptual center line of the mini-staff.
+        const circleKeySignatureSymbols = {
+            "C": { sharps: 0, flats: 0, symbols: [] },
+            "G": { sharps: 1, flats: 0, symbols: [{ sym: "#", y: 0 }] }, // F#
+            "D": { sharps: 2, flats: 0, symbols: [{ sym: "#", y: 0 }, { sym: "#", y: -10 }] }, // F#, C#
+            "A": { sharps: 3, flats: 0, symbols: [{ sym: "#", y: 0 }, { sym: "#", y: -10 }, { sym: "#", y: 5 }] }, // F#, C#, G#
+            "E": { sharps: 4, flats: 0, symbols: [{ sym: "#", y: 0 }, { sym: "#", y: -10 }, { sym: "#", y: 5 }, { sym: "#", y: -5 }] }, // F#, C#, G#, D#
+            "B": { sharps: 5, flats: 0, symbols: [{ sym: "#", y: 0 }, { sym: "#", y: -10 }, { sym: "#", y: 5 }, { sym: "#", y: -5 }, { sym: "#", y: -15 }] }, // F#, C#, G#, D#, A#
+            "F#": { sharps: 6, flats: 0, symbols: [{ sym: "#", y: 0 }, { sym: "#", y: -10 }, { sym: "#", y: 5 }, { sym: "#", y: -5 }, { sym: "#", y: -15 }, { sym: "#", y: 10 }] }, // F#, C#, G#, D#, A#, E#
+            "Db": { sharps: 0, flats: 5, symbols: [{ sym: "b", y: -5 }, { sym: "b", y: 5 }, { sym: "b", y: -15 }, { sym: "b", y: -10 }, { sym: "b", y: 0 }] }, // Db, Gb, Cb, Fb, Bb
+            "Ab": { sharps: 0, flats: 4, symbols: [{ sym: "b", y: -5 }, { sym: "b", y: 5 }, { sym: "b", y: -15 }, { sym: "b", y: -10 }] }, // Db, Gb, Cb, Fb
+            "Eb": { sharps: 0, flats: 3, symbols: [{ sym: "b", y: -5 }, { sym: "b", y: 5 }, { sym: "b", y: -15 }] }, // Db, Gb, Cb
+            "Bb": { sharps: 0, flats: 2, symbols: [{ sym: "b", y: -5 }, { sym: "b", y: 5 }] }, // Db, Gb
+            "F": { sharps: 0, flats: 1, symbols: [{ sym: "b", y: -5 }] } // Db
+        };
+
+        // Function to draw a miniature key signature around the circle
+        function drawMiniKeySignature(svg, majorNote, angle) {
+            const keyInfo = circleKeySignatureSymbols[majorNote];
+            if (!keyInfo) return;
+
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            group.setAttribute("class", "key-signature-group");
+
+            // Calculate position for the center of the mini-staff
+            const miniStaffCenterX = CENTER_X + KEY_SIGNATURE_RADIUS * Math.cos(angle);
+            const miniStaffCenterY = CENTER_Y + KEY_SIGNATURE_RADIUS * Math.sin(angle);
+
+            const staffWidth = 40;
+            const staffHeight = 20;
+            const staffLineSpacing = staffHeight / 4; // 5 lines, 4 spaces
+            const staffStartX = miniStaffCenterX - (staffWidth / 2);
+            const staffStartY = miniStaffCenterY - (staffHeight / 2);
+
+            // Draw 5 mini staff lines
+            for (let i = 0; i < 5; i++) {
+                const y = staffStartY + (i * staffLineSpacing);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", staffStartX);
+                line.setAttribute("y1", y);
+                line.setAttribute("x2", staffStartX + staffWidth);
+                line.setAttribute("y2", y);
+                line.setAttribute("class", "mini-staff-line");
+                group.appendChild(line);
+            }
+
+            // Draw a simplified treble clef (scaled down) - IMPROVED PATH
+            const clefPath = "M 10 18 C 10 14 12 11 15 11 C 18 11 20 14 20 18 C 20 22 18 25 15 25 C 12 25 10 22 10 18 Z M 15 11 L 15 0 M 15 25 L 15 30"; // More accurate treble clef path
+            const clef = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            clef.setAttribute("d", clefPath);
+            clef.setAttribute("class", "mini-clef");
+            clef.setAttribute("transform", `translate(${staffStartX - 10}, ${staffStartY - 15}) scale(0.7)`); // Adjust position and scale
+            group.appendChild(clef);
+
+
+            // Draw sharps/flats
+            keyInfo.symbols.forEach((symbol, index) => {
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", staffStartX + staffWidth / 4 + (index * 6)); // Adjust X spacing
+                text.setAttribute("y", miniStaffCenterY + symbol.y);
+                text.setAttribute("dominant-baseline", "middle");
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("class", "key-symbol");
+                text.textContent = symbol.sym;
+                group.appendChild(text);
+            });
+
+            svg.appendChild(group);
+        }
+
+        // Function to draw the Circle of Fifths SVG
+        function drawCircleOfFifths() {
+            const container = document.getElementById("circle-container");
+            container.innerHTML = ''; // Clear previous SVG
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("viewBox", `0 0 ${SVG_SIZE} ${SVG_SIZE}`);
+            svg.setAttribute("class", "w-full h-full");
+
+            // Draw center circle
+            const centerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            centerCircle.setAttribute("cx", CENTER_X);
+            centerCircle.setAttribute("cy", CENTER_Y);
+            centerCircle.setAttribute("r", INNER_RADIUS - NOTE_CIRCLE_RADIUS);
+            centerCircle.setAttribute("class", "center-circle");
+            svg.appendChild(centerCircle);
+
+            // Draw lines connecting outer notes
+            for (let i = 0; i < circleNotes.length; i++) {
+                const angle1 = (i * (360 / circleNotes.length) - 90) * Math.PI / 180;
+                const angle2 = ((i + 1) * (360 / circleNotes.length) - 90) * Math.PI / 180;
+
+                const x1 = CENTER_X + OUTER_RADIUS * Math.cos(angle1);
+                const y1 = CENTER_Y + OUTER_RADIUS * Math.sin(angle1);
+                const x2 = CENTER_X + OUTER_RADIUS * Math.cos(angle2);
+                const y2 = CENTER_Y + OUTER_RADIUS * Math.sin(angle2);
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", x1);
+                line.setAttribute("y1", y1);
+                line.setAttribute("x2", x2);
+                line.setAttribute("y2", y2);
+                line.setAttribute("class", "line");
+                svg.appendChild(line);
+            }
+
+            // Draw notes
+            circleNotes.forEach((note, index) => {
+                const angle = (index * (360 / circleNotes.length) - 90) * Math.PI / 180; // Start at 12 o'clock
+
+                // Outer circle (Major)
+                const majorX = CENTER_X + OUTER_RADIUS * Math.cos(angle);
+                const majorY = CENTER_Y + OUTER_RADIUS * Math.sin(angle);
+
+                const majorGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                majorGroup.setAttribute("class", `note-group major cursor-pointer ${currentHighlightedKey === note ? 'highlighted-major-chord' : ''}`);
+                majorGroup.setAttribute("data-note", note);
+
+                const majorCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                majorCircle.setAttribute("cx", majorX);
+                majorCircle.setAttribute("cy", majorY);
+                majorCircle.setAttribute("r", NOTE_CIRCLE_RADIUS);
+                majorCircle.setAttribute("class", "note-circle");
+                majorGroup.appendChild(majorCircle);
+
+                const majorText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                majorText.setAttribute("x", majorX);
+                majorText.setAttribute("y", majorY);
+                majorText.setAttribute("dominant-baseline", "middle");
+                majorText.setAttribute("text-anchor", "middle");
+                majorText.setAttribute("class", "note-text");
+                majorText.textContent = note;
+                majorGroup.appendChild(majorText);
+                svg.appendChild(majorGroup);
+
+                // Inner circle (Minor)
+                const minorX = CENTER_X + INNER_RADIUS * Math.cos(angle);
+                const minorY = CENTER_Y + INNER_RADIUS * Math.sin(angle);
+                const minorNote = relativeMinors[note];
+
+                const minorGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                minorGroup.setAttribute("class", `note-group minor cursor-pointer ${currentHighlightedKey === minorNote ? 'highlighted-minor-chord' : ''}`);
+                minorGroup.setAttribute("data-note", minorNote);
+
+                const minorCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                minorCircle.setAttribute("cx", minorX);
+                minorCircle.setAttribute("cy", minorY);
+                minorCircle.setAttribute("r", NOTE_CIRCLE_RADIUS * 0.7); // Smaller radius for minor notes
+                minorCircle.setAttribute("class", "minor-note-circle");
+                minorGroup.appendChild(minorCircle);
+
+                const minorText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                minorText.setAttribute("x", minorX);
+                minorText.setAttribute("y", minorY);
+                minorText.setAttribute("dominant-baseline", "middle");
+                minorText.setAttribute("text-anchor", "middle");
+                minorText.setAttribute("class", "minor-note-text");
+                minorText.textContent = minorNote;
+                minorGroup.appendChild(minorText);
+                svg.appendChild(minorGroup);
+
+                // Draw line connecting major to relative minor
+                const relativeLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                relativeLine.setAttribute("x1", majorX);
+                relativeLine.setAttribute("y1", majorY);
+                relativeLine.setAttribute("x2", minorX);
+                relativeLine.setAttribute("y2", minorY);
+                relativeLine.setAttribute("class", "relative-line");
+                svg.appendChild(relativeLine);
+
+                // Draw key signatures
+                drawMiniKeySignature(svg, note, angle);
+            });
+
+            container.appendChild(svg);
+            addCircleClickListeners();
+        }
+
+        // Function to add click listeners to the notes in the circle
+        function addCircleClickListeners() {
+            document.querySelectorAll(".note-group").forEach(group => {
+                group.addEventListener("click", (event) => {
+                    const selectedNote = event.currentTarget.dataset.note;
+                    highlightCircleNote(selectedNote);
+                    displayDiatonicChords(selectedNote);
+                    updateModeDisplayAndFretboard(); // Update fretboard when key changes
+                });
+            });
+        }
+
+        // Function to highlight a note in the circle
+        function highlightCircleNote(noteToHighlight) {
+            // Remove existing highlights
+            document.querySelectorAll(".highlighted-major-chord").forEach(el => {
+                el.classList.remove("highlighted-major-chord");
+            });
+            document.querySelectorAll(".highlighted-minor-chord").forEach(el => {
+                el.classList.remove("highlighted-minor-chord");
+            });
+            document.querySelectorAll(".highlighted-diatonic").forEach(el => {
+                el.classList.remove("highlighted-diatonic");
+            });
+
+            let actualMajorKeyToHighlight = null;
+            let actualMinorKeyToHighlight = null;
+            let isMajorSelection = true;
+
+            if (noteToHighlight.endsWith('m')) { // If a minor key was clicked
+                actualMinorKeyToHighlight = noteToHighlight;
+                actualMajorKeyToHighlight = relativeMajors[noteToHighlight];
+                isMajorSelection = false;
+            } else { // If a major key was clicked
+                actualMajorKeyToHighlight = noteToHighlight;
+                actualMinorKeyToHighlight = relativeMinors[noteToHighlight];
+                isMajorSelection = true;
+            }
+
+            // Highlight the major group (tonic)
+            const majorGroup = document.querySelector(`.note-group.major[data-note="${actualMajorKeyToHighlight}"]`);
+            if (majorGroup) {
+                majorGroup.classList.add("highlighted-major-chord");
+            }
+
+            // Highlight the minor group (relative minor)
+            const minorGroup = document.querySelector(`.note-group.minor[data-note="${actualMinorKeyToHighlight}"]`);
+            if (minorGroup) {
+                minorGroup.classList.add("highlighted-minor-chord");
+            }
+
+            // Highlight all diatonic notes
+            const rootNoteForScale = isMajorSelection ? actualMajorKeyToHighlight : actualMinorKeyToHighlight.replace('m', '');
+            const scaleTypeForDiatonics = isMajorSelection ? "Jónico (Mayor)" : "Eólico (Menor)";
+            const diatonicNotes = getModeNotesWithIntervals(rootNoteForScale, scaleTypeForDiatonics).map(n => getCanonicalNote(n.note));
+
+            document.querySelectorAll(".note-group.major, .note-group.minor").forEach(group => {
+                const groupNote = group.dataset.note;
+                const canonicalGroupNote = getCanonicalNote(groupNote);
+
+                if (diatonicNotes.includes(canonicalGroupNote)) {
+                    group.classList.add("highlighted-diatonic");
+                }
+            });
+
+
+            // Set currentHighlightedKey to the major key for consistent internal logic
+            currentHighlightedKey = actualMajorKeyToHighlight;
+
+            // No need to redraw the entire circle, just apply/remove classes.
+        }
+
+        // Function to get diatonic chords for a given key
+        function getDiatonicChords(key) {
+            const isMajor = !key.endsWith('m'); // Simple check for major/minor
+            const rootNote = isMajor ? key : key.slice(0, -1); // Remove 'm' for minor
+
+            const chromaticScale = fullChromaticScaleSharps; // Use sharps for consistency in calculation
+            const rootIndex = chromaticScale.indexOf(rootNote);
+            if (rootIndex === -1) {
+                console.error("Root note not found in chromatic scale:", rootNote);
+                return [];
+            }
+
+            let chords = [];
+            let scaleIntervals;
+            let chordQualities;
+
+            if (isMajor) {
+                scaleIntervals = modesIntervals["Jónico (Mayor)"].intervals; // Major scale intervals
+                chordQualities = ["", "m", "m", "", "", "m", "dim"]; // Major, minor, minor, Major, Major, minor, diminished
+            } else {
+                scaleIntervals = modesIntervals["Eólico (Menor)"].intervals; // Natural minor scale intervals
+                chordQualities = ["m", "dim", "", "m", "m", "", ""]; // minor, diminished, Major, minor, minor, Major, Major
+            }
+
+            for (let i = 0; i < scaleIntervals.length; i++) {
+                const intervalSemitones = scaleIntervals[i];
+                const chordRootIndex = (rootIndex + intervalSemitones) % 12;
+                const chordRootNote = chromaticScale[chordRootIndex];
+                chords.push(chordRootNote + chordQualities[i]);
+            }
+            return chords;
+        }
+
+        // Function to display diatonic chords in the table
+        function displayDiatonicChords(key) {
+            const chords = getDiatonicChords(key);
+            const chordsRow = document.getElementById("diatonic-chords-row");
+            chordsRow.innerHTML = ''; // Clear previous chords
+
+            chords.forEach(chord => {
+                const td = document.createElement("td");
+                td.classList.add("chord-name");
+                td.textContent = chord;
+                chordsRow.appendChild(td);
+            });
+
+            document.getElementById("diatonic-chords-key-display").textContent = key;
+            document.getElementById("selected-key-title").textContent = `Tonalidad Seleccionada: ${key}`;
+
+            // Update theory explanation based on selected key
+            const theoryTextElement = document.getElementById("current-theory-text");
+            const isMajor = !key.endsWith('m');
+            if (isMajor) {
+                theoryTextElement.textContent = `Has seleccionado la tonalidad de ${key} Mayor. Esta tonalidad se basa en el modo Jónico y es la base de muchas canciones alegres y brillantes. Sus acordes diatónicos son: ${chords.join(', ')}.`;
+            } else {
+                theoryTextElement.textContent = `Has seleccionado la tonalidad de ${key} menor. Esta tonalidad se basa en el modo Eólico y es común en canciones con un sentimiento más melancólico o dramático. Sus acordes diatónicos son: ${chords.join(', ')}.`;
+            }
+
+            // Update scale notes display
+            const scaleNotes = getModeNotesWithIntervals(key.replace('m', ''), isMajor ? "Jónico (Mayor)" : "Eólico (Menor)");
+            document.getElementById("scale-notes-display").textContent = `Notas de la escala: ${scaleNotes.map(n => n.note).join(', ')}`;
+        }
+
+        // Function to draw the guitar fretboard
+        function drawFretboard() {
+            const fretboardSvg = document.getElementById("fretboard-svg");
+            fretboardSvg.innerHTML = ''; // Clear previous drawing
+
+            // Draw frets (vertical lines)
+            for (let i = 0; i <= NUM_FRETS; i++) {
+                const x = (i * FRET_SPACING) + FRET_SPACING / 2; // Center frets between positions
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", x);
+                line.setAttribute("y1", STRING_SPACING);
+                line.setAttribute("x2", x);
+                line.setAttribute("y2", FRETBOARD_HEIGHT - STRING_SPACING);
+                line.setAttribute("class", "fret-line");
+                fretboardSvg.appendChild(line);
+            }
+
+            // Draw nut (thicker line at the beginning)
+            const nutLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            nutLine.setAttribute("x1", FRET_SPACING / 2);
+            nutLine.setAttribute("y1", STRING_SPACING);
+            nutLine.setAttribute("x2", FRET_SPACING / 2);
+            nutLine.setAttribute("y2", FRETBOARD_HEIGHT - STRING_SPACING);
+            nutLine.setAttribute("class", "nut-line");
+            fretboardSvg.appendChild(nutLine);
+
+            // Draw strings (horizontal lines)
+            for (let i = 0; i < NUM_STRINGS; i++) {
+                const y = (i * STRING_SPACING) + STRING_SPACING;
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", FRET_SPACING / 2);
+                line.setAttribute("y1", y);
+                line.setAttribute("x2", FRETBOARD_WIDTH - FRET_SPACING / 2);
+                line.setAttribute("y2", y);
+                line.setAttribute("class", "string-line");
+                fretboardSvg.appendChild(line);
+            }
+
+            // Draw fret markers (dots)
+            const fretMarkers = [3, 5, 7, 9, 12, 15, 17, 19, 21];
+            fretMarkers.forEach(fret => {
+                const x = (fret * FRET_SPACING) + FRET_SPACING / 2;
+                if (fret === 12 || fret === 24) { // Double dots for 12th and 24th fret
+                    const dot1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    dot1.setAttribute("cx", x);
+                    dot1.setAttribute("cy", FRETBOARD_HEIGHT / 2 - STRING_SPACING);
+                    dot1.setAttribute("r", 5);
+                    dot1.setAttribute("fill", "#a0aec0");
+                    fretboardSvg.appendChild(dot1);
+
+                    const dot2 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    dot2.setAttribute("cx", x);
+                    dot2.setAttribute("cy", FRETBOARD_HEIGHT / 2 + STRING_SPACING);
+                    dot2.setAttribute("r", 5);
+                    dot2.setAttribute("fill", "#a0aec0");
+                    fretboardSvg.appendChild(dot2);
+                } else {
+                    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    dot.setAttribute("cx", x);
+                    dot.setAttribute("cy", FRETBOARD_HEIGHT / 2);
+                    dot.setAttribute("r", 5);
+                    dot.setAttribute("fill", "#a0aec0");
+                    fretboardSvg.appendChild(dot);
+                }
+            });
+
+            // Highlight notes from the selected mode/scale
+            if (currentHighlightedKey) {
+                const isMajorKey = !currentHighlightedKey.endsWith('m');
+                const rootNoteForMode = isMajorKey ? currentHighlightedKey : currentHighlightedKey.slice(0, -1);
+                const modeNotes = getModeNotesWithIntervals(rootNoteForMode, currentSelectedMode);
+
+                let positionStartFret = 0;
+                let positionEndFret = NUM_FRETS; // Default to full fretboard
+
+                const selectedPositionData = scalePositionPatterns[currentFretboardPosition];
+
+                if (selectedPositionData) {
+                    // Find the actual fret of the root note for the current mode on the specified root string
+                    const rootNoteMidi = getMidiNoteNumber(rootNoteForMode, openStringNotes[selectedPositionData.rootStringIndex].octave);
+                    const openStringMidi = getMidiNoteNumber(openStringNotes[selectedPositionData.rootStringIndex].name, openStringNotes[selectedPositionData.rootStringIndex].octave);
+                    
+                    // Calculate the fret where the root of the scale is on the designated root string
+                    const actualRootFretOnBaseString = rootNoteMidi - openStringMidi;
+
+                    // Calculate the starting fret for the entire position box
+                    positionStartFret = actualRootFretOnBaseString - selectedPositionData.rootRelativeFretInBox;
+                    
+                    // Ensure startFret is not negative
+                    positionStartFret = Math.max(0, positionStartFret);
+                    positionEndFret = positionStartFret + 4; // Assuming a 4-fret span for positions (0-4 relative frets)
+                }
+
+                modeNotes.forEach(modeNote => {
+                    for (let stringIdx = 0; stringIdx < NUM_STRINGS; stringIdx++) {
+                        const openNoteMidi = getMidiNoteNumber(openStringNotes[stringIdx].name, openStringNotes[stringIdx].octave);
+
+                        for (let fret = 0; fret <= NUM_FRETS; fret++) {
+                            const currentNoteMidi = openNoteMidi + fret;
+                            const currentNoteName = fullChromaticScaleSharps[currentNoteMidi % 12]; // Get note name from chromatic scale
+
+                            const canonicalModeNote = getCanonicalNote(modeNote.note);
+                            const canonicalCurrentNote = getCanonicalNote(currentNoteName);
+
+                            if (canonicalModeNote === canonicalCurrentNote) {
+                                let shouldDraw = false;
+
+                                if (currentFretboardPosition === "Full Fretboard") {
+                                    shouldDraw = true;
+                                } else if (selectedPositionData) {
+                                    // Check if the note is within the calculated fret window for the position
+                                    if (fret >= positionStartFret && fret <= positionEndFret) {
+                                        const relativeFretInPosition = fret - positionStartFret;
+                                        // Check if this relative fret is part of the pattern for this string
+                                        if (selectedPositionData.pattern[stringIdx] && selectedPositionData.pattern[stringIdx].includes(relativeFretInPosition)) {
+                                            shouldDraw = true;
+                                        }
+                                    }
+                                }
+
+                                if (shouldDraw) {
+                                    const x = (fret * FRET_SPACING) + FRET_SPACING / 2;
+                                    const y = (stringIdx * STRING_SPACING) + STRING_SPACING;
+
+                                    const noteDot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                                    noteDot.setAttribute("cx", x);
+                                    noteDot.setAttribute("cy", y);
+                                    noteDot.setAttribute("r", 10);
+
+                                    let fillColor;
+                                    switch (modeNote.function) {
+                                        case "fundamental":
+                                            fillColor = "#f6ad55"; // Orange
+                                            break;
+                                        case "resolution":
+                                            fillColor = "#63b3ed"; // Blue
+                                            break;
+                                        case "resting":
+                                            fillColor = "#48bb78"; // Green
+                                            break;
+                                        default:
+                                            fillColor = "#9f7aea"; // Purple (other notes)
+                                            break;
+                                    }
+                                    noteDot.setAttribute("fill", fillColor);
+                                    noteDot.setAttribute("stroke", "#1a202c");
+                                    noteDot.setAttribute("stroke-width", "2");
+                                    fretboardSvg.appendChild(noteDot);
+
+                                    const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                                    noteText.setAttribute("x", x);
+                                    noteText.setAttribute("y", y + 2);
+                                    noteText.setAttribute("dominant-baseline", "middle");
+                                    noteText.setAttribute("text-anchor", "middle");
+                                    noteText.setAttribute("font-size", "10");
+                                    noteText.setAttribute("fill", "#1a202c");
+                                    noteText.textContent = modeNote.note;
+                                    fretboardSvg.appendChild(noteText);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+
+        // Function to update mode details and redraw fretboard
+        function updateModeDisplayAndFretboard() {
+            const modeDetailsDisplay = document.getElementById("mode-details-display");
+            const selectedModeTitle = document.getElementById("selected-mode-title");
+            const modeFormulaDisplay = document.getElementById("mode-formula-display");
+            const modeNotesDisplay = document.getElementById("mode-notes-display");
+
+            const modeData = modesIntervals[currentSelectedMode];
+            if (modeData && currentHighlightedKey) {
+                const isMajorKey = !currentHighlightedKey.endsWith('m');
+                const rootNoteForMode = isMajorKey ? currentHighlightedKey : currentHighlightedKey.slice(0, -1);
+
+                selectedModeTitle.textContent = `Modo: ${currentSelectedMode} en ${rootNoteForMode}`;
+                modeFormulaDisplay.textContent = `Fórmula: ${modeData.formula}`;
+
+                const notesWithIntervals = getModeNotesWithIntervals(rootNoteForMode, currentSelectedMode);
+                modeNotesDisplay.textContent = `Notas de la escala: ${notesWithIntervals.map(n => n.note).join(', ')}`;
+
+                drawFretboard(); // Redraw fretboard with new mode and position
+            } else {
+                selectedModeTitle.textContent = "Modo: --";
+                modeFormulaDisplay.textContent = "Fórmula: --";
+                modeNotesDisplay.textContent = "Notas de la escala: --";
+                fretboardSvg.innerHTML = ''; // Clear fretboard if no key selected
+            }
+        }
+
+
+        // Function to draw the melody staff and tablature
+        function drawMelodyStaff(melodyNotes, soloNotes) {
+            const staffSvg = document.getElementById("melody-staff-svg");
+            staffSvg.innerHTML = ''; // Clear previous drawing
+
+            const staffY = 50; // Y position for the top staff line
+            const staffLineSpacing = 15; // Spacing between staff lines
+            const numStaffLines = 5;
+            const staffLength = 750; // Length of the staff
+
+            // Draw staff lines
+            for (let i = 0; i < numStaffLines; i++) {
+                const y = staffY + (i * staffLineSpacing);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 50);
+                line.setAttribute("y1", y);
+                line.setAttribute("x2", 50 + staffLength);
+                line.setAttribute("y2", y);
+                line.setAttribute("class", "staff-line");
+                staffSvg.appendChild(line);
+            }
+
+            // Draw Treble Clef (Clave de Sol) - IMPROVED PATH
+            const trebleClefPath = "M 75 100 C 70 80 80 60 90 60 C 100 60 105 70 105 80 C 105 100 80 140 75 160 C 70 180 80 200 90 200 C 100 200 105 190 105 180 C 105 160 80 120 75 100 Z M 90 60 L 90 10 M 90 200 L 90 240"; // More accurate and visually appealing treble clef
+            const trebleClef = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            trebleClef.setAttribute("d", trebleClefPath);
+            trebleClef.setAttribute("class", "treble-clef");
+            trebleClef.setAttribute("transform", "translate(-20, -30) scale(0.6)"); // Adjust position and scale
+            staffSvg.appendChild(trebleClef);
+
+            // Function to get Y position for a note on the staff
+            function getNoteYPosition(noteName, octave) {
+                // Base Y for C4 (middle C) - adjust to fit the staff lines
+                // Assuming C4 is on the first ledger line below the staff (or just below the staff)
+                const baseC4Y = staffY + (numStaffLines * staffLineSpacing); // Below the staff
+                const noteOrder = ["C", "D", "E", "F", "G", "A", "B"];
+                const noteIndex = noteOrder.indexOf(noteName.charAt(0));
+
+                let y = baseC4Y - (noteIndex * (staffLineSpacing / 2)); // Each step is half a line spacing
+
+                // Adjust for octave
+                // C4 (MIDI 60)
+                // C3 (MIDI 48) -> 12 semitones lower, 6 steps lower
+                // C5 (MIDI 72) -> 12 semitones higher, 6 steps higher
+                const midiC4 = 60; // MIDI for C4
+                const currentNoteMidi = getMidiNoteNumber(noteName, octave);
+                const midiDifference = currentNoteMidi - midiC4;
+                y -= (midiDifference / 2) * (staffLineSpacing / 2); // Each semitone is half a step, each step is half a line spacing
+
+                return y;
+            }
+
+            // Draw melody notes on staff
+            let currentX = 100;
+            const noteSpacing = 40;
+
+            melodyNotes.forEach((note, index) => {
+                // Parse note and octave (e.g., "C4")
+                const noteName = note.match(/[A-G][b#]?/)[0];
+                const octave = parseInt(note.match(/\d/)[0]);
+
+                const noteY = getNoteYPosition(noteName, octave);
+                const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                noteCircle.setAttribute("cx", currentX);
+                noteCircle.setAttribute("cy", noteY);
+                noteCircle.setAttribute("r", 7); // Note head radius
+                noteCircle.setAttribute("fill", "#f6ad55"); // Orange note head
+                staffSvg.appendChild(noteCircle);
+
+                const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                noteText.setAttribute("x", currentX);
+                noteText.setAttribute("y", noteY + 20); // Position text below note
+                noteText.setAttribute("dominant-baseline", "middle");
+                noteText.setAttribute("text-anchor", "middle");
+                noteText.setAttribute("class", "staff-note-text");
+                noteText.textContent = note; // Display full note name (e.g., C4)
+                staffSvg.appendChild(noteText);
+
+                currentX += noteSpacing;
+            });
+
+            // Draw solo notes on staff (starting after melody notes)
+            soloNotes.forEach((note, index) => {
+                // Parse note and octave (e.g., "C4")
+                const noteName = note.match(/[A-G][b#]?/)[0];
+                const octave = parseInt(note.match(/\d/)[0]);
+
+                const noteY = getNoteYPosition(noteName, octave);
+                const noteCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                noteCircle.setAttribute("cx", currentX);
+                noteCircle.setAttribute("cy", noteY);
+                noteCircle.setAttribute("r", 7); // Note head radius
+                noteCircle.setAttribute("fill", "#63b3ed"); // Blue for solo notes
+                staffSvg.appendChild(noteCircle);
+
+                const noteText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                noteText.setAttribute("x", currentX);
+                noteText.setAttribute("y", noteY + 20); // Position text below note
+                noteText.setAttribute("dominant-baseline", "middle");
+                noteText.setAttribute("text-anchor", "middle");
+                noteText.setAttribute("class", "staff-note-text");
+                noteText.textContent = note; // Display full note name (e.g., C4)
+                staffSvg.appendChild(noteText);
+
+                currentX += noteSpacing;
+            });
+
+
+            // Add tablature below the staff
+            const tablatureY = staffY + (numStaffLines * staffLineSpacing) + 60; // Position below the staff
+            const tablatureText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            tablatureText.setAttribute("x", 50);
+            tablatureText.setAttribute("y", tablatureY);
+            tablatureText.setAttribute("class", "tablature-text");
+            tablatureText.setAttribute("xml:space", "preserve"); // Preserve whitespace for formatting
+
+            const fullMelodyAndSolo = [...melodyNotes, ...soloNotes];
+            const tabString = generateTablatureString(fullMelodyAndSolo);
+
+            tabString.split('\n').forEach((line, index) => {
+                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                tspan.setAttribute("x", 50); // Start at the same X
+                tspan.setAttribute("dy", index === 0 ? "0em" : "1.2em"); // Line spacing
+                tspan.textContent = line;
+                tablatureText.appendChild(tspan);
+            });
+            staffSvg.appendChild(tablatureText);
+        }
+
+        // Function to draw a chord diagram
+        function drawChordDiagram(chordName, diagramData, containerId) {
+            const container = document.getElementById(containerId);
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("class", "chord-diagram-svg");
+            svg.setAttribute("width", "120");
+            svg.setAttribute("height", "150");
+            svg.setAttribute("viewBox", "0 0 120 150");
+
+            // Title
+            const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            title.setAttribute("x", "60");
+            title.setAttribute("y", "20");
+            title.setAttribute("text-anchor", "middle");
+            title.setAttribute("fill", "#f6ad55");
+            title.setAttribute("font-weight", "bold");
+            title.textContent = chordName;
+            svg.appendChild(title);
+
+            const fretboardStartX = 20;
+            const fretboardStartY = 40;
+            const fretboardWidth = 80;
+            const fretboardHeight = 90; // 4 frets visible
+            const numDiagramFrets = 4; // Show 4 frets
+
+            // Draw fret lines
+            for (let i = 0; i <= numDiagramFrets; i++) {
+                const y = fretboardStartY + (i * (fretboardHeight / numDiagramFrets));
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", fretboardStartX);
+                line.setAttribute("y1", y);
+                line.setAttribute("x2", fretboardStartX + fretboardWidth);
+                line.setAttribute("y2", y);
+                line.setAttribute("class", "fret-line");
+                svg.appendChild(line);
+            }
+
+            // Draw string lines
+            const numDiagramStrings = 6;
+            for (let i = 0; i < numDiagramStrings; i++) {
+                const x = fretboardStartX + (i * (fretboardWidth / (numDiagramStrings - 1)));
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", x);
+                line.setAttribute("y1", fretboardStartY);
+                line.setAttribute("x2", x);
+                line.setAttribute("y2", fretboardStartY + fretboardHeight);
+                line.setAttribute("class", "string-line");
+                svg.appendChild(line);
+            }
+
+            // Draw nut (if open strings are present)
+            if (diagramData.some(fret => fret === 0)) {
+                const nut = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                nut.setAttribute("x", fretboardStartX);
+                nut.setAttribute("y", fretboardStartY - 3);
+                nut.setAttribute("width", fretboardWidth);
+                nut.setAttribute("height", 6);
+                nut.setAttribute("class", "nut-line");
+                svg.appendChild(nut);
+            }
+
+            // Draw finger dots and open/muted string markers
+            diagramData.forEach((fret, stringIndex) => {
+                const stringX = fretboardStartX + (stringIndex * (fretboardWidth / (numDiagramStrings - 1)));
+                if (fret === -1) { // Muted string
+                    const muted = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    muted.setAttribute("x", stringX);
+                    muted.setAttribute("y", fretboardStartY - 10);
+                    muted.setAttribute("text-anchor", "middle");
+                    muted.setAttribute("class", "muted-string-marker");
+                    muted.textContent = "X";
+                    svg.appendChild(muted);
+                } else if (fret === 0) { // Open string
+                    const open = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    open.setAttribute("cx", stringX);
+                    open.setAttribute("cy", fretboardStartY - 10);
+                    open.setAttribute("r", 4);
+                    open.setAttribute("class", "open-string-marker");
+                    svg.appendChild(open);
+                } else if (fret > 0) { // Fretted note
+                    const dotY = fretboardStartY + ((fret - 0.5) * (fretboardHeight / numDiagramFrets));
+                    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    dot.setAttribute("cx", stringX);
+                    dot.setAttribute("cy", dotY);
+                    dot.setAttribute("r", 8);
+                    dot.setAttribute("class", "finger-dot");
+                    svg.appendChild(dot);
+                }
+            });
+
+            container.appendChild(svg);
+        }
+
+        // Function to draw a strumming pattern
+        function drawStrumPattern(pattern, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; // Clear previous drawing
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("class", "strum-pattern-svg");
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "80");
+            svg.setAttribute("viewBox", "0 0 400 80");
+
+            const startX = 20;
+            const startY = 40;
+            const arrowSpacing = 50;
+
+            pattern.forEach((beat, index) => {
+                const x = startX + (index * arrowSpacing);
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", x);
+                text.setAttribute("y", startY - 15);
+                text.setAttribute("text-anchor", "middle");
+                text.setAttribute("class", "strum-beat-text");
+                text.textContent = (index + 1).toString(); // Beat number
+                svg.appendChild(text);
+
+                const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                arrow.setAttribute("class", "strum-arrow");
+                if (beat === "down") {
+                    arrow.setAttribute("d", `M ${x - 10} ${startY - 5} L ${x} ${startY + 15} L ${x + 10} ${startY - 5} Z`);
+                } else if (beat === "up") {
+                    arrow.setAttribute("d", `M ${x - 10} ${startY + 5} L ${x} ${startY - 15} L ${x + 10} ${startY + 5} Z`);
+                } else if (beat === "rest") {
+                    const restText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    restText.setAttribute("x", x);
+                    restText.setAttribute("y", startY + 5);
+                    restText.setAttribute("text-anchor", "middle");
+                    restText.setAttribute("fill", "#e2e8f0");
+                    restText.setAttribute("font-size", "20");
+                    restText.textContent = "𝄻"; // Quarter rest symbol (Unicode)
+                    svg.appendChild(restText);
+                }
+                svg.appendChild(arrow);
+            });
+
+            container.appendChild(svg);
+        }
+
+        // Example chord diagrams (simplified for common chords)
+        const chordDiagrams = {
+            "C": [0, 1, 0, 2, 3, -1], // E A D G B e (high E to low E)
+            "G": [3, 0, 0, 0, 2, 3],
+            "D": [2, 3, 2, 0, -1, -1],
+            "Am": [0, 1, 2, 2, 0, -1],
+            "Em": [0, 0, 0, 2, 2, 0],
+            "Dm": [1, 3, 2, 0, -1, -1],
+            "F": [1, 1, 2, 3, 3, 1], // Barre chord
+            "Bb": [1, 3, 3, 3, 1, -1], // Barre chord
+            "C#m": [4, 5, 6, 6, 4, -1], // Barre chord
+            "Bbm": [1, 1, 3, 3, 2, 1], // Barre chord
+            "Cm": [3, 4, 5, 5, 3, -1] // Barre chord
+        };
+
+        // Function to generate a song idea using the Gemini API
+        async function generateSongIdea() {
+            const feeling = document.getElementById("feeling-select").value;
+            const style = document.getElementById("style-select").value;
+            const complexity = document.getElementById("complexity-select").value;
+            const numModes = document.getElementById("num-modes-select").value;
+            const loadingSpinner = document.getElementById("loading-spinner");
+            const songIdeaOutput = document.getElementById("song-idea-output");
+
+            loadingSpinner.classList.remove("hidden");
+            songIdeaOutput.classList.add("hidden");
+
+            const prompt = `Genera una idea de rola para guitarra con el siguiente estilo: ${style}, con un sentimiento ${feeling}, y una complejidad ${complexity}. Incluye:
+            - Un título para la rola.
+            - Una estructura de tema (ej. Intro, Verso, Coro, Puente, Outro) con una progresión de acordes para cada sección.
+            - Un patrón de rasgueo sugerido (usa "down" para abajo, "up" para arriba, "rest" para silencio).
+            - Una propuesta de melodía para la sección del solo (solo las notas con su octava, ej. "C4", "D4", 8-12 notas).
+            - Una intención para el solo (ej. "melódico", "virtuoso", "bluesy").
+            - Sugiere ${numModes} modos griegos que puedan usarse en el solo, basados en la tonalidad principal de la rola.
+
+            Formato de la respuesta (JSON estricto, sin comentarios ni texto adicional):
+            {
+                "title": "Título de la rola",
+                "structure": [
+                    {"section": "Intro", "measures": "4", "chords": ["C", "G", "Am", "F"]},
+                    {"section": "Verso 1", "measures": "8", "chords": ["C", "G", "Am", "F"]},
+                    {"section": "Coro", "measures": "8", "chords": ["F", "C", "G", "Am"]},
+                    {"section": "Puente", "measures": "4", "chords": ["Dm", "G", "C"]},
+                    {"section": "Solo", "measures": "8", "chords": ["C", "G", "Am", "F"]},
+                    {"section": "Outro", "measures": "4", "chords": ["C", "G", "Am", "F"]}
+                ],
+                "strumPattern": ["down", "down", "up", "up", "down", "rest"],
+                "soloMelodyNotes": ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"],
+                "soloIntention": "Un solo melódico y expresivo.",
+                "suggestedModes": ["Jónico (Mayor)", "Mixolidio"]
+            }`;
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = {
+                    contents: chatHistory,
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "title": { "type": "STRING" },
+                                "structure": {
+                                    "type": "ARRAY",
+                                    "items": {
+                                        "type": "OBJECT",
+                                        "properties": {
+                                            "section": { "type": "STRING" },
+                                            "measures": { "type": "STRING" },
+                                            "chords": {
+                                                "type": "ARRAY",
+                                                "items": { "type": "STRING" }
+                                            }
+                                        }
+                                    }
+                                },
+                                "strumPattern": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                },
+                                "soloMelodyNotes": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                },
+                                "soloIntention": { "type": "STRING" },
+                                "suggestedModes": {
+                                    "type": "ARRAY",
+                                    "items": { "type": "STRING" }
+                                }
+                            }
+                        }
+                    }
+                };
+                const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                console.log("API Response:", result); // Log the full API response for debugging
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const rawJsonText = result.candidates[0].content.parts[0].text;
+                    console.log("Raw JSON text from API:", rawJsonText); // Log raw text before parsing
+                    try {
+                        const jsonResponse = JSON.parse(rawJsonText);
+                        displaySongIdea(jsonResponse);
+                    } catch (parseError) {
+                        console.error("Error parsing JSON response:", parseError);
+                        document.getElementById("song-idea-output").innerHTML = '<p class="text-red-400">¡Ups! La IA generó un formato inválido. Intenta de nuevo.</p>';
+                        document.getElementById("song-idea-output").classList.remove("hidden");
+                    }
+                } else {
+                    console.error("Unexpected API response structure or empty content:", result);
+                    document.getElementById("song-idea-output").innerHTML = '<p class="text-red-400">¡Ups! No pude generar la idea de rola. Intenta de nuevo. (Estructura de respuesta inesperada)</p>';
+                    document.getElementById("song-idea-output").classList.remove("hidden");
+                }
+            } catch (error) {
+                console.error("Error generating song idea (network/API call):", error);
+                document.getElementById("song-idea-output").innerHTML = '<p class="text-red-400">¡Error al conectar con la IA! Revisa tu conexión o intenta más tarde.</p>';
+                document.getElementById("song-idea-output").classList.remove("hidden");
+            } finally {
+                loadingSpinner.classList.add("hidden");
+            }
+        }
+
+        // Function to display the generated song idea
+        function displaySongIdea(data) {
+            document.getElementById("song-idea-title").textContent = data.title;
+
+            const structureTableBody = document.getElementById("song-structure-table-body");
+            structureTableBody.innerHTML = '';
+            data.structure.forEach(section => {
+                const row = document.createElement("tr");
+                row.classList.add("bg-gray-800", "hover:bg-gray-700");
+                row.innerHTML = `
+                    <td class="p-2 border border-gray-600">${section.section}</td>
+                    <td class="p-2 border border-gray-600">${section.measures}</td>
+                    <td class="p-2 border border-gray-600">${section.chords.join(', ')}</td>
+                `;
+                structureTableBody.appendChild(row);
+            });
+
+            const chordDiagramsContainer = document.getElementById("chord-diagrams-container");
+            chordDiagramsContainer.innerHTML = '';
+            // Collect unique chords from the structure
+            const uniqueChords = new Set();
+            data.structure.forEach(section => {
+                section.chords.forEach(chord => uniqueChords.add(chord));
+            });
+            uniqueChords.forEach(chord => {
+                if (chordDiagrams[chord]) {
+                    drawChordDiagram(chord, chordDiagrams[chord], "chord-diagrams-container");
+                } else {
+                    // Fallback for chords not in diagramData (e.g., just display text)
+                    const chordText = document.createElement("div");
+                    chordText.classList.add("p-2", "border", "border-gray-600", "rounded-md", "text-center", "text-lg", "font-bold", "text-orange-300");
+                    chordText.textContent = chord;
+                    chordDiagramsContainer.appendChild(chordText);
+                }
+            });
+
+            drawStrumPattern(data.strumPattern, "strum-pattern-container");
+
+            // Draw melody and solo on staff and tablature
+            drawMelodyStaff(data.soloMelodyNotes, data.soloMelodyNotes); // Pass solo notes twice for now, or generate separate melody.
+                                                                        // For now, I will use soloMelodyNotes as both melody and solo.
+                                                                        // In a real app, you'd generate a separate melody.
+            document.getElementById("solo-intention-text").textContent = data.soloIntention;
+            document.getElementById("solo-proposal-text").textContent = data.soloMelodyNotes.join(', ');
+
+            document.getElementById("song-idea-output").classList.remove("hidden");
+        }
+
+
+        // Tuner Logic
+        let audioContext;
+        let analyser;
+        let microphone;
+        let mediaStream;
+        let pitchDetector;
+        let animationFrameId;
+        let currentTuning = staticMusicalData.afinaciones.estandar[0]; // Default to EADGBE
+        let currentStringCount = 6;
+        let a4Frequency = 440;
+
+        // Notes array for tuning, derived from chromatic scale
+        const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+        // Frequencies of notes in a standard tuning (A4 = 440Hz)
+        function getNoteFrequency(note, octave) {
+            const midiNote = getMidiNoteNumber(note, octave);
+            return 440 * Math.pow(2, (midiNote - 69) / 12);
+        }
+
+        // Generate target frequencies for the selected tuning
+        function getTargetFrequencies(tuningString) {
+            const notesInTuning = tuningString.split('').reverse(); // Reverse to match low E to high E
+            const targetFreqs = [];
+            // Assuming standard guitar range for octaves
+            const tuningOctaves = {
+                'E': 2, 'A': 2, 'D': 3, 'G': 3, 'B': 3, 'e': 4, // Standard 6-string
+                'F#': 1, 'B': 1, 'C': 2, 'C#': 2, 'D#': 2, 'G#': 2, // 8-string (F#BEADGBE)
+                // Add more as needed for other tunings
+            };
+
+            notesInTuning.forEach(noteChar => {
+                const noteName = noteChar.toUpperCase();
+                // Simple octave assignment, might need refinement for complex tunings
+                let octave = tuningOctaves[noteName] || 3; // Default to octave 3 if not specified
+                if (noteName === 'E' && notesInTuning.indexOf(noteChar) === 0) octave = 2; // Low E
+                if (noteName === 'E' && notesInTuning.indexOf(noteChar) === notesInTuning.length - 1) octave = 4; // High E
+
+                targetFreqs.push({ note: noteName, freq: getNoteFrequency(noteName, octave) });
+            });
+            return targetFreqs;
+        }
+
+        // Pitch detection algorithm (simplified)
+        function autoCorrelate(buffer, sampleRate) {
+            const SIZE = buffer.length;
+            const MAX_SAMPLES = Math.floor(SIZE / 2);
+            let bestOffset = -1;
+            let bestCorrelation = 0;
+            let rms = 0;
+
+            for (let i = 0; i < SIZE; i++) {
+                rms += buffer[i] * buffer[i];
+            }
+            rms = Math.sqrt(rms / SIZE);
+            if (rms < 0.01) return -1; // Not enough signal
+
+            let lastCorrelation = 1;
+            for (let offset = 0; offset < MAX_SAMPLES; offset++) {
+                let correlation = 0;
+                for (let i = 0; i < MAX_SAMPLES; i++) {
+                    correlation += buffer[i] * buffer[i + offset];
+                }
+                correlation /= MAX_SAMPLES;
+                if (correlation > bestCorrelation) {
+                    bestCorrelation = correlation;
+                    bestOffset = offset;
+                } else if (correlation < lastCorrelation && bestOffset !== -1) {
+                    // Found a peak
+                    return sampleRate / bestOffset;
+                }
+                lastCorrelation = correlation;
+            }
+            return -1;
+        }
+
+        function updateTunerDisplay(frequency) {
+            const tunerNoteDisplay = document.getElementById("tuner-note");
+            const tunerCentsDisplay = document.getElementById("tuner-cents");
+            const tunerNeedle = document.getElementById("tuner-needle");
+
+            if (frequency === -1) {
+                tunerNoteDisplay.textContent = "--";
+                tunerCentsDisplay.textContent = "-- Cents";
+                tunerNeedle.style.transform = `rotate(0deg)`;
+                return;
+            }
+
+            // Find the closest note
+            let closestNote = null;
+            let minCents = Infinity;
+
+            const targetFrequencies = getTargetFrequencies(currentTuning);
+
+            targetFrequencies.forEach(target => {
+                const cents = 1200 * Math.log2(frequency / target.freq);
+                if (Math.abs(cents) < Math.abs(minCents)) {
+                    minCents = cents;
+                    closestNote = target.note;
+                }
+            });
+
+            if (closestNote) {
+                tunerNoteDisplay.textContent = closestNote;
+                tunerCentsDisplay.textContent = `${minCents.toFixed(2)} Cents`;
+
+                // Calculate needle rotation: -45 deg for -50 cents, 0 deg for 0 cents, +45 deg for +50 cents
+                const rotation = Math.max(-45, Math.min(45, minCents));
+                tunerNeedle.style.transform = `rotate(${rotation}deg)`;
+
+            } else {
+                tunerNoteDisplay.textContent = "--";
+                tunerCentsDisplay.textContent = "-- Cents";
+                tunerNeedle.style.transform = `rotate(0deg)`;
+            }
+        }
+
+        function processAudio() {
+            const buffer = new Float32Array(analyser.fftSize);
+            analyser.getFloatTimeDomainData(buffer);
+            const pitch = autoCorrelate(buffer, audioContext.sampleRate);
+            updateTunerDisplay(pitch);
+            animationFrameId = requestAnimationFrame(processAudio);
+        }
+
+        async function startTuner() {
+            if (audioContext && audioContext.state === 'running') {
+                console.log("Tuner already running.");
+                return;
+            }
+
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048; // Good balance for pitch detection
+
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioContext.createMediaStreamSource(mediaStream);
+                microphone.connect(analyser);
+
+                processAudio();
+                document.getElementById("open-tuner-button").disabled = true;
+                document.getElementById("start-tuner-button").disabled = true;
+                document.getElementById("stop-tuner-button").disabled = false;
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('No se pudo acceder al micrófono. Asegúrate de dar permiso.');
+            }
+        }
+
+        function stopTuner() {
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            document.getElementById("open-tuner-button").disabled = false;
+            document.getElementById("start-tuner-button").disabled = false;
+            document.getElementById("stop-tuner-button").disabled = true;
+            updateTunerDisplay(-1); // Clear display
+        }
+
+        // Populate tuning dropdown
+        function populateTuningDropdown() {
+            const select = document.getElementById("tuner-tuning-select");
+            select.innerHTML = ''; // Clear existing options
+
+            // Standard tunings
+            for (const tuning of staticMusicalData.afinaciones.estandar) {
+                const option = document.createElement("option");
+                option.value = tuning;
+                option.textContent = `Estándar (${tuning})`;
+                select.appendChild(option);
+            }
+            // Drop tunings
+            for (const key in staticMusicalData.afinaciones.drop) {
+                const option = document.createElement("option");
+                option.value = staticMusicalData.afinaciones.drop[key];
+                option.textContent = `${key} (${staticMusicalData.afinaciones.drop[key]})`;
+                select.appendChild(option);
+            }
+            // 7-string tunings
+            for (const key in staticMusicalData.afinaciones.afinaciones_7_cuerdas) {
+                const option = document.createElement("option");
+                option.value = staticMusicalData.afinaciones.afinaciones_7_cuerdas[key];
+                option.textContent = `7 cuerdas - ${key} (${staticMusicalData.afinaciones.afinaciones_7_cuerdas[key]})`;
+                select.appendChild(option);
+            }
+            // 8-string tunings
+            for (const key in staticMusicalData.afinaciones.afinaciones_8_cuerdas) {
+                const option = document.createElement("option");
+                option.value = staticMusicalData.afinaciones.afinaciones_8_cuerdas[key];
+                option.textContent = `8 cuerdas - ${key} (${staticMusicalData.afinaciones.afinaciones_8_cuerdas[key]})`;
+                select.appendChild(option);
+            }
+
+            select.value = currentTuning; // Set default
+            select.addEventListener("change", (e) => {
+                currentTuning = e.target.value;
+                // Re-evaluate target frequencies if tuner is running
+                if (audioContext && audioContext.state === 'running') {
+                    // No need to restart, just the target frequencies change
+                }
+            });
+        }
+
+        // Metronome Logic
+        let metronomeInterval;
+        let metronomeAudioContext;
+        let metronomeOscillator;
+        let metronomeGainNode;
+        let bpm = 120;
+        let beatsPerMeasure = 4;
+        let currentBeat = 0;
+        let isMetronomeRunning = false;
+
+        function createMetronomeSound() {
+            if (!metronomeAudioContext) {
+                metronomeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const oscillator = metronomeAudioContext.createOscillator();
+            const gainNode = metronomeAudioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(metronomeAudioContext.destination);
+
+            oscillator.type = 'sine'; // Sine wave for a clean click
+            oscillator.frequency.setValueAtTime(880, metronomeAudioContext.currentTime); // High pitch for click
+
+            // Fade out quickly
+            gainNode.gain.setValueAtTime(1, metronomeAudioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, metronomeAudioContext.currentTime + 0.05);
+
+            oscillator.start(metronomeAudioContext.currentTime);
+            oscillator.stop(metronomeAudioContext.currentTime + 0.05);
+        }
+
+        function createAccentSound() {
+            if (!metronomeAudioContext) {
+                metronomeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const oscillator = metronomeAudioContext.createOscillator();
+            const gainNode = metronomeAudioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(metronomeAudioContext.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1200, metronomeAudioContext.currentTime); // Even higher pitch for accent
+
+            gainNode.gain.setValueAtTime(1, metronomeAudioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, metronomeAudioContext.currentTime + 0.07);
+
+            oscillator.start(metronomeAudioContext.currentTime);
+            oscillator.stop(metronomeAudioContext.currentTime + 0.07);
+        }
+
+        function metronomeTick() {
+            currentBeat = (currentBeat % beatsPerMeasure) + 1;
+            if (currentBeat === 1) {
+                createAccentSound(); // Accent the first beat
+            } else {
+                createMetronomeSound();
+            }
+            updateBeatIndicators();
+        }
+
+        function startMetronome() {
+            if (isMetronomeRunning) return;
+
+            isMetronomeRunning = true;
+            if (!metronomeAudioContext) {
+                metronomeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // Ensure audio context is resumed if suspended
+            if (metronomeAudioContext.state === 'suspended') {
+                metronomeAudioContext.resume();
+            }
+
+            const intervalTime = (60 / bpm) * 1000; // Milliseconds per beat
+            metronomeInterval = setInterval(metronomeTick, intervalTime);
+            metronomeTick(); // Play first tick immediately
+
+            document.getElementById("start-metronome-button").disabled = true;
+            document.getElementById("stop-metronome-button").disabled = false;
+        }
+
+        function stopMetronome() {
+            if (!isMetronomeRunning) return;
+
+            isMetronomeRunning = false;
+            clearInterval(metronomeInterval);
+            currentBeat = 0;
+            updateBeatIndicators(); // Reset indicators
+            document.getElementById("start-metronome-button").disabled = false;
+            document.getElementById("stop-metronome-button").disabled = true;
+        }
+
+        function updateBeatIndicators() {
+            const container = document.getElementById("beat-indicators");
+            container.innerHTML = '';
+            for (let i = 1; i <= beatsPerMeasure; i++) {
+                const indicator = document.createElement("div");
+                indicator.classList.add("metronome-beat-indicator");
+                if (i === 1) {
+                    indicator.classList.add("first-beat");
+                }
+                if (i === currentBeat) {
+                    indicator.classList.add("active");
+                }
+                container.appendChild(indicator);
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener("DOMContentLoaded", () => {
+            drawCircleOfFifths();
+            populateModeDropdown();
+            drawFretboard(); // Initial draw of empty fretboard or with default mode
+            populateTuningDropdown();
+            updateBeatIndicators(); // Initial draw of metronome indicators
+
+            // Circle of Fifths Reset Button
+            document.getElementById("reset-button").addEventListener("click", () => {
+                currentHighlightedKey = null;
+                // Instead of redrawing the whole circle, just remove highlights
+                document.querySelectorAll(".highlighted-major-chord").forEach(el => {
+                    el.classList.remove("highlighted-major-chord");
+                });
+                document.querySelectorAll(".highlighted-minor-chord").forEach(el => {
+                    el.classList.remove("highlighted-minor-chord");
+                });
+                document.querySelectorAll(".highlighted-diatonic").forEach(el => {
+                    el.classList.remove("highlighted-diatonic");
+                });
+
+                document.getElementById("selected-key-title").textContent = "Selecciona una tonalidad...";
+                document.getElementById("scale-notes-display").textContent = "Las notas diatónicas aparecerán aquí.";
+                document.getElementById("current-theory-text").textContent = "Aquí aparecerá una explicación breve sobre la tonalidad mayor o menor que selecciones en el círculo.";
+                document.getElementById("diatonic-chords-key-display").textContent = "--";
+                document.getElementById("diatonic-chords-row").innerHTML = '';
+                updateModeDisplayAndFretboard(); // Clear mode display and fretboard
+            });
+
+            // Fretboard Position Select Listener
+            document.getElementById("fretboard-position-select").addEventListener("change", (event) => {
+                currentFretboardPosition = event.target.value;
+                updateModeDisplayAndFretboard();
+            });
+
+
+            // Song Idea Generator Button
+            document.getElementById("generate-song-idea-button").addEventListener("click", generateSongIdea);
+
+            // Tuner Modal Controls
+            document.getElementById("open-tuner-button").addEventListener("click", () => {
+                document.getElementById("tuner-modal").classList.remove("hidden");
+                startTuner();
+            });
+            document.getElementById("close-tuner-button").addEventListener("click", () => {
+                document.getElementById("tuner-modal").classList.add("hidden");
+                stopTuner();
+            });
+            document.getElementById("start-tuner-button").addEventListener("click", startTuner);
+            document.getElementById("stop-tuner-button").addEventListener("click", stopTuner);
+
+            // A4 Frequency Slider
+            const a4Slider = document.getElementById("a4-frequency-slider");
+            const a4Display = document.getElementById("a4-frequency-display");
+            a4Slider.addEventListener("input", (e) => {
+                a4Frequency = parseFloat(e.target.value);
+                a4Display.textContent = `${a4Frequency} Hz`;
+                // If tuner is running, update the pitch detection logic to use new A4
+                // (This would require re-calculating target frequencies based on A4,
+                // for simplicity, we'll just let the pitch detection continue with its own A4 if already running)
+            });
+
+
+            // Metronome Modal Controls
+            document.getElementById("open-metronome-button").addEventListener("click", () => {
+                document.getElementById("metronome-modal").classList.remove("hidden");
+            });
+            document.getElementById("close-metronome-button").addEventListener("click", () => {
+                document.getElementById("metronome-modal").classList.add("hidden");
+                stopMetronome();
+            });
+            document.getElementById("start-metronome-button").addEventListener("click", startMetronome);
+            document.getElementById("stop-metronome-button").addEventListener("click", stopMetronome);
+
+            // Metronome BPM Slider
+            const bpmSlider = document.getElementById("bpm-slider");
+            const bpmDisplay = document.getElementById("metronome-bpm-display");
+            bpmSlider.addEventListener("input", (e) => {
+                bpm = parseInt(e.target.value);
+                bpmDisplay.textContent = `${bpm} BPM`;
+                if (isMetronomeRunning) {
+                    stopMetronome();
+                    startMetronome();
+                }
+            });
+
+            // Metronome Beats Per Measure Select
+            const beatsPerMeasureSelect = document.getElementById("beats-per-measure-select");
+            beatsPerMeasureSelect.addEventListener("change", (e) => {
+                beatsPerMeasure = parseInt(e.target.value);
+                updateBeatIndicators();
+                if (isMetronomeRunning) {
+                    stopMetronome();
+                    startMetronome();
+                }
+            });
+
+            // Print button functionality
+            document.getElementById("print-button").addEventListener("click", () => {
+                window.print();
+            });
+
+            // Export MIDI (placeholder for now)
+            document.getElementById("export-midi-button").addEventListener("click", () => {
+                alert("¡Función de exportar a MIDI en construcción! ¡Pronto estará lista para que exportes tus rolas!");
+            });
+        });
+    </script>
+</body>
+</html>
