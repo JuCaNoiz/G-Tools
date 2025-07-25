@@ -1,34 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-43B9HYQXD0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-43B9HYQXD0');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G-Tools</title>
+    <title>Círculo de Quintas Pro para Guitarristas</title>
     <!-- Incluye Tailwind CSS para estilos rápidos y responsivos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fuente Inter para un look moderno -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        
         /* Estilos generales del cuerpo */
         body {
-            font-family: 'Courier', sans-serif;
-            background-color: #00050d; /* Fondo oscuro */
-            color: #fffffc; /* Texto claro */
+           @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap'); /* Space Mono for clean, monospaced look */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            position: relative; /* Needed for fixed/absolute positioning of elements over the canvas */
+            background-color: black; /* Ensure HTML and Body are transparent for PNG-like background */
+        }
+        body {
+            font-family: 'Space Mono', monospace; /* Applied new font */
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+            color: white; /* Default text color for body, overridden where needed */
+        }
+
+        /* Canvas occupies the entire background */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block; /* Changed to block to make it visible */
+            z-index: 0; /* Ensures it's in the background layer */
+        }
         }
         /* Contenedor principal para organizar el layout */
         .main-container {
@@ -173,7 +181,7 @@
         .tablature-text {
             fill: #e2e8f0;
             font-family: 'monospace'; /* Fuente monoespaciada para alineación */
-            font-size: 14px;
+            font-size: 25pxpx;
         }
         /* Estilos para los diagramas de acordes */
         .chord-diagram-svg {
@@ -552,17 +560,6 @@
             justify-content: center;
             gap: 20px;
             margin-top: 20px;
-            
-            /* Footer styles */
-        .app-footer {
-            margin-top: 40px;
-            padding: 20px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #666666; /* Gris para el texto del footer */
-            width: 100%;
-            background-color: #0A0A0A; /* Fondo del footer */
-            border-top: 1px solid #222222; /* Línea separadora sutil */
         }
     </style>
 </head>
@@ -934,11 +931,7 @@
             </div>
         </div>
     </div>
-    
-    <!-- Footer -->
-    <footer class="app-footer">
-        Desarrollado por JuCa Noiz | Aural Flux®
-    </footer>
+
 
     <script>
         // Static musical data provided by the user
@@ -1944,34 +1937,6 @@
             "Gm7b5": [
                 { fingers: { 6: -1, 5: 4, 4: 5, 3: 4, 2: 5, 1: 4 }, mutedStrings: [6], lowestFret: 4, name: "Gm7b5 (Cejilla)" }
             ],
-            "B": [
-                { fingers: { 6: 1, 5: 3, 4: 3, 3: 2, 2: 1, 1: 1 }, barre: { fret: 7, startString: 1, endString: 6 }, lowestFret: 7, name: "B (Cejilla E-forma)" },
-                { fingers: { 6: -1, 5: 2, 4: 4, 3: 4, 2: 4, 1: 2 }, barre: { fret: 2, startString: 1, endString: 5 }, lowestFret: 2, name: "B (Cejilla A-forma)" }
-            ],
-            "Bm": [
-                { fingers: { 6: 1, 5: 3, 4: 3, 3: 1, 2: 1, 1: 1 }, barre: { fret: 7, startString: 1, endString: 6 }, lowestFret: 7, name: "Bm (Cejilla E-forma)" },
-                { fingers: { 6: -1, 5: 2, 4: 4, 3: 4, 2: 3, 1: 2 }, barre: { fret: 2, startString: 1, endString: 5 }, lowestFret: 2, name: "Bm (Cejilla A-forma)" }
-            ],
-            "Bm7": [
-                { fingers: { 6: 1, 5: 3, 4: 1, 3: 1, 2: 1, 1: 1 }, barre: { fret: 7, startString: 1, endString: 6 }, lowestFret: 7, name: "Bm7 (Cejilla E-forma)" },
-                { fingers: { 6: -1, 5: 2, 4: 4, 3: 2, 2: 3, 1: 2 }, mutedStrings: [6], barre: { fret: 2, startString: 1, endString: 5 }, lowestFret: 2, name: "Bm7 (Cejilla A-forma)" }
-            ],
-            "B7": [
-                { fingers: { 6: 1, 5: 3, 4: 1, 3: 2, 2: 1, 1: 1 }, barre: { fret: 7, startString: 1, endString: 6 }, lowestFret: 7, name: "B7 (Cejilla E-forma)" },
-                { fingers: { 6: -1, 5: 2, 4: 4, 3: 2, 2: 4, 1: 2 }, mutedStrings: [6], barre: { fret: 2, startString: 1, endString: 5 }, lowestFret: 2, name: "B7 (Cejilla A-forma)" }
-            ],
-            "Bsus4": [
-                { fingers: { 6: 1, 5: 3, 4: 3, 3: 3, 2: 1, 1: 1 }, barre: { fret: 7, startString: 1, endString: 6 }, lowestFret: 7, name: "Bsus4 (Cejilla E-forma)" }
-            ],
-            "Badd9": [
-                { fingers: { 6: 1, 5: 3, 4: 3, 3: 2, 2: 4, 1: 1 }, barre: { fret: 7, startString: 1, endString: 6 }, lowestFret: 7, name: "Badd9 (Cejilla E-forma)" }
-            ],
-            "Bdim7": [
-                { fingers: { 6: 1, 5: 2, 4: 3, 3: 1, 2: 3, 1: 2 }, lowestFret: 7, name: "Bdim7 (Cejilla)" }
-            ],
-            "Bm7b5": [
-                { fingers: { 6: 1, 5: 2, 4: 3, 3: 1, 2: 3, 1: 2 }, lowestFret: 7, name: "Bm7b5 (Cejilla)" }
-            ]
 
             "D": [
                 { fingers: { 6: -1, 5: -1, 4: 0, 3: 2, 2: 3, 1: 2 }, mutedStrings: [6, 5], lowestFret: 0, name: "D (Abierto)" },
@@ -2311,8 +2276,19 @@
         }
 
         // Function to draw strumming pattern
-        function drawStrummingPattern(containerId, complexity) {
-            const container = document.getElementById(containerId);
+        function drawStrummingPattern(containerOrId, complexity) {
+            let container;
+            if (typeof containerOrId === 'string') {
+                container = document.getElementById(containerOrId);
+            } else {
+                container = containerOrId; // It's already a DOM element
+            }
+
+            if (!container) {
+                console.error("Error: Strumming pattern container not found.");
+                return;
+            }
+
             container.innerHTML = ''; // Clear previous content
 
             const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -3293,8 +3269,8 @@
 
                     // Re-create strum pattern SVG in the print window
                     const tempStrumPatternContainer = document.createElement('div');
-                    tempStrumPatternContainer.classList.add('strum-pattern-container');
-                    drawStrummingPattern(tempStrumPatternContainer.id, currentSongIdea.strumPatternComplexity);
+                    // No need to add a class here, as it's just a temporary container for drawing
+                    drawStrummingPattern(tempStrumPatternContainer, currentSongIdea.strumPatternComplexity); // Pass the element directly
                     const strumPatternContent = tempStrumPatternContainer.innerHTML;
 
 
